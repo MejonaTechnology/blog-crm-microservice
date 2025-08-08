@@ -194,11 +194,11 @@ func (rc *ROICalculator) calculateEngagementValue(engagement EngagementMetrics, 
 	// Comment value
 	value += float64(engagement.Comments) * valueMetrics.CommentValue
 
-	// Download value
-	value += float64(engagement.Downloads) * valueMetrics.DownloadValue
+	// Note: Downloads field removed from EngagementMetrics
+	// value += float64(engagement.Downloads) * valueMetrics.DownloadValue
 
-	// Newsletter signup value
-	value += float64(engagement.NewsletterSignups) * valueMetrics.SignupValue
+	// Note: NewsletterSignups field removed from EngagementMetrics
+	// value += float64(engagement.NewsletterSignups) * valueMetrics.SignupValue
 
 	return value
 }
