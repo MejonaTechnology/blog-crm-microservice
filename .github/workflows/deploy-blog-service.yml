@@ -1,0 +1,450 @@
+name: Blog CRM Service - Build and Deploy
+
+on:
+  push:
+    branches: [ main, staging, develop ]
+  pull_request:
+    branches: [ main, staging ]
+
+env:
+  SERVICE_NAME: blog-crm-service
+  SERVICE_PORT: 8082
+  GO_VERSION: '1.21'
+
+jobs:
+  test:
+    name: Test and Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ env.GO_VERSION }}
+        
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+          
+    - name: Download dependencies
+      run: go mod download
+      
+    - name: Run go vet
+      run: go vet ./...
+      
+    - name: Run go fmt check
+      run: |
+        if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+          echo "Go code is not formatted:"
+          gofmt -s -l .
+          exit 1
+        fi
+        
+    - name: Run tests
+      run: go test -v -race -coverprofile=coverage.out ./...
+      
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.out
+        flags: unittests
+        name: codecov-umbrella
+
+  security:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run Gosec Security Scanner
+      uses: securecodewarrior/github-action-gosec@master
+      with:
+        args: '-no-fail -fmt sarif -out gosec.sarif ./...'
+        
+    - name: Upload SARIF file
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: gosec.sarif
+
+  build:
+    name: Build Application
+    needs: [test, security]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ env.GO_VERSION }}
+        
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+          
+    - name: Download dependencies
+      run: go mod download
+      
+    - name: Build for Linux
+      run: |
+        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o ${{ env.SERVICE_NAME }}-linux cmd/server/main.go
+        
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ env.SERVICE_NAME }}-linux
+        path: ${{ env.SERVICE_NAME }}-linux
+        retention-days: 30
+
+  docker:
+    name: Build and Push Docker Image
+    needs: [build]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: mejonatechnology/${{ env.SERVICE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+          
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  deploy-staging:
+    name: Deploy to Staging
+    needs: [docker]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/staging'
+    environment: staging
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Deploy to AWS EC2 Staging
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.STAGING_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        port: 22
+        script: |
+          # Stop existing service
+          sudo systemctl stop ${{ env.SERVICE_NAME }} || true
+          
+          # Update deployment directory
+          cd /opt/mejona/${{ env.SERVICE_NAME }} || exit 1
+          
+          # Pull latest changes
+          git pull origin staging
+          
+          # Build application
+          /usr/local/go/bin/go mod download
+          CGO_ENABLED=0 /usr/local/go/bin/go build -o ${{ env.SERVICE_NAME }} cmd/server/main.go
+          
+          # Update systemd service
+          sudo cp scripts/${{ env.SERVICE_NAME }}.service /etc/systemd/system/
+          sudo systemctl daemon-reload
+          sudo systemctl enable ${{ env.SERVICE_NAME }}
+          
+          # Start service
+          sudo systemctl start ${{ env.SERVICE_NAME }}
+          
+          # Wait for service to start
+          sleep 10
+          
+          # Health check
+          curl -f http://localhost:${{ env.SERVICE_PORT }}/health || exit 1
+          
+    - name: Notify deployment status
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#deployments'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+      if: always()
+
+  deploy-production:
+    name: Deploy to Production
+    needs: [docker]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download build artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: ${{ env.SERVICE_NAME }}-linux
+        
+    - name: Deploy to AWS EC2 Production
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.PRODUCTION_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        port: 22
+        script: |
+          echo "🚀 Starting Blog CRM Service deployment to production..."
+          
+          # Create deployment directory
+          sudo mkdir -p /opt/mejona/blog-crm-service
+          cd /opt/mejona/blog-crm-service
+          
+          # Stop existing service
+          sudo systemctl stop blog-crm-service || true
+          
+          # Backup current version
+          sudo cp blog-crm-service blog-crm-service.backup.$(date +%Y%m%d_%H%M%S) 2>/dev/null || true
+          
+          # Download and update repository
+          if [ ! -d ".git" ]; then
+            sudo git clone https://github.com/MejonaTechnology/blog-crm-microservice.git .
+          else
+            sudo git pull origin main
+          fi
+          
+          # Set proper ownership
+          sudo chown -R ubuntu:ubuntu /opt/mejona/blog-crm-service
+          
+          # Install/update dependencies
+          /usr/local/go/bin/go mod download
+          
+          # Build application
+          echo "Building Blog CRM Service..."
+          CGO_ENABLED=0 /usr/local/go/bin/go build -ldflags="-w -s" -o blog-crm-service cmd/server/main.go
+          sudo chmod +x blog-crm-service
+          
+          # Create production environment file
+          sudo tee .env.production > /dev/null <<EOF
+          # Blog CRM Service Production Configuration
+          DB_HOST=${{ secrets.DB_HOST }}
+          DB_USER=${{ secrets.DB_USER }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          DB_NAME=${{ secrets.DB_NAME }}
+          DB_PORT=3306
+          
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          GIN_MODE=release
+          PORT=${{ env.SERVICE_PORT }}
+          
+          # Analytics Configuration
+          ENABLE_ANALYTICS=true
+          ENABLE_LEAD_TRACKING=true
+          ENABLE_SEO_ANALYSIS=true
+          
+          # Monitoring
+          ENABLE_METRICS=true
+          LOG_LEVEL=info
+          EOF
+          
+          # Update systemd service
+          sudo tee /etc/systemd/system/blog-crm-service.service > /dev/null <<EOF
+          [Unit]
+          Description=Blog CRM Management Microservice
+          After=network.target mysql.service
+          Wants=mysql.service
+          
+          [Service]
+          Type=simple
+          User=ubuntu
+          Group=ubuntu
+          WorkingDirectory=/opt/mejona/blog-crm-service
+          ExecStart=/opt/mejona/blog-crm-service/blog-crm-service
+          EnvironmentFile=/opt/mejona/blog-crm-service/.env.production
+          Restart=always
+          RestartSec=10
+          StandardOutput=journal
+          StandardError=journal
+          
+          # Security settings
+          NoNewPrivileges=true
+          PrivateTmp=true
+          ProtectSystem=strict
+          ReadWritePaths=/opt/mejona/blog-crm-service
+          
+          [Install]
+          WantedBy=multi-user.target
+          EOF
+          
+          # Configure nginx reverse proxy
+          sudo tee /etc/nginx/sites-available/blog-crm-service > /dev/null <<EOF
+          server {
+              listen 80;
+              server_name mejona.in www.mejona.in;
+              
+              # Blog CRM API
+              location /api/v1/blog {
+                  proxy_pass http://localhost:${{ env.SERVICE_PORT }};
+                  proxy_set_header Host \$host;
+                  proxy_set_header X-Real-IP \$remote_addr;
+                  proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto \$scheme;
+              }
+              
+              # Health checks
+              location /blog-health {
+                  proxy_pass http://localhost:${{ env.SERVICE_PORT }}/health;
+                  proxy_set_header Host \$host;
+                  proxy_set_header X-Real-IP \$remote_addr;
+              }
+          }
+          EOF
+          
+          # Enable nginx site
+          sudo ln -sf /etc/nginx/sites-available/blog-crm-service /etc/nginx/sites-enabled/
+          sudo nginx -t && sudo systemctl reload nginx
+          
+          # Reload systemd and start service
+          sudo systemctl daemon-reload
+          sudo systemctl enable blog-crm-service
+          sudo systemctl start blog-crm-service
+          
+          # Wait for service to start
+          echo "Waiting for Blog CRM Service to start..."
+          sleep 15
+          
+          # Health check
+          echo "Performing health check..."
+          if curl -f http://localhost:${{ env.SERVICE_PORT }}/health; then
+            echo "✅ Blog CRM Service health check passed"
+          else
+            echo "❌ Blog CRM Service health check failed"
+            sudo systemctl status blog-crm-service
+            exit 1
+          fi
+          
+          # Test API endpoints
+          echo "Testing API endpoints..."
+          curl -f http://localhost:${{ env.SERVICE_PORT }}/api/v1/test || exit 1
+          
+          echo "🎉 Blog CRM Service deployment completed successfully!"
+          
+    - name: Post-deployment verification
+      run: |
+        echo "🔍 Running post-deployment verification..."
+        
+        # Wait for service to fully start
+        sleep 30
+        
+        # Test external health endpoint
+        curl -f "http://${{ secrets.PRODUCTION_HOST }}/blog-health" || exit 1
+        
+        echo "✅ Blog CRM Service is operational on production"
+        
+    - name: Notify successful deployment
+      uses: 8398a7/action-slack@v3
+      with:
+        status: success
+        channel: '#deployments'
+        text: |
+          🎉 Blog CRM Service successfully deployed to production!
+          
+          📊 Deployment Details:
+          • Service: Blog CRM Management Microservice
+          • Version: ${{ github.sha }}
+          • Port: ${{ env.SERVICE_PORT }}
+          • Health: http://${{ secrets.PRODUCTION_HOST }}/blog-health
+          
+          🚀 New Features Available:
+          • Advanced blog CRM with lead generation
+          • Revenue attribution and analytics
+          • SEO optimization and performance tracking
+          • Real-time blog performance monitoring
+          • Professional admin dashboard integration
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+      if: success()
+      
+    - name: Notify failed deployment
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        channel: '#deployments'
+        text: |
+          ❌ Blog CRM Service deployment to production FAILED!
+          
+          Please check the deployment logs and investigate the issue.
+          Commit: ${{ github.sha }}
+          Branch: ${{ github.ref }}
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+      if: failure()
+
+  smoke-tests:
+    name: Production Smoke Tests
+    needs: [deploy-production]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run smoke tests
+      run: |
+        echo "🧪 Running production smoke tests..."
+        
+        # Test health endpoint
+        curl -f "http://${{ secrets.PRODUCTION_HOST }}/blog-health" || exit 1
+        
+        # Test API availability (should return 401 without auth)
+        response=$(curl -s -o /dev/null -w "%{http_code}" "http://${{ secrets.PRODUCTION_HOST }}/api/v1/blog/blogs")
+        if [ "$response" != "401" ]; then
+          echo "❌ API endpoint not responding correctly (expected 401, got $response)"
+          exit 1
+        fi
+        
+        echo "✅ All smoke tests passed!"
+        
+    - name: Performance baseline test
+      run: |
+        echo "⚡ Running performance baseline test..."
+        
+        # Simple load test with curl
+        for i in {1..10}; do
+          curl -w "@scripts/curl-format.txt" -o /dev/null -s "http://${{ secrets.PRODUCTION_HOST }}/blog-health"
+        done
+        
+        echo "✅ Performance baseline completed"

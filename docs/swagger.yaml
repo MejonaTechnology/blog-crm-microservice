@@ -1,0 +1,1261 @@
+openapi: 3.0.3
+info:
+  title: Blog CRM Management Microservice API
+  description: |
+    Professional blog and content management microservice for Mejona Technology CRM.
+    
+    This service provides comprehensive blog management capabilities including:
+    - Content creation and publishing
+    - Lead generation and tracking
+    - SEO optimization and analytics
+    - CRM integration for lead nurturing
+    
+    **Base URL:** `http://65.1.94.25:8082`
+    **Nginx Proxy:** `http://65.1.94.25/api/v1/blog`
+    
+    ## Authentication
+    
+    The API uses JWT Bearer token authentication for protected endpoints.
+    Include the token in the Authorization header:
+    
+    ```
+    Authorization: Bearer <your-jwt-token>
+    ```
+    
+    ## Rate Limiting
+    
+    API requests are rate-limited to prevent abuse:
+    - **General endpoints**: 100 requests per minute
+    - **Health checks**: 30 requests per minute
+    - **Documentation**: 10 requests per minute
+    
+    ## Error Handling
+    
+    The API uses standard HTTP status codes and returns structured error responses:
+    
+    ```json
+    {
+      "error": {
+        "code": "VALIDATION_ERROR",
+        "message": "Invalid request parameters",
+        "details": {
+          "field": "email",
+          "reason": "invalid_format"
+        }
+      },
+      "timestamp": "2025-01-08T12:00:00Z",
+      "path": "/api/v1/blogs"
+    }
+    ```
+    
+  version: 1.0.0
+  contact:
+    name: Mejona Technology Support
+    url: https://mejona.in/support
+    email: support@mejona.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: https://mejona.in/terms
+
+servers:
+  - url: http://65.1.94.25:8082
+    description: Production server
+  - url: http://65.1.94.25/api/v1/blog
+    description: Production server (via Nginx proxy)
+  - url: http://localhost:8082
+    description: Local development server
+
+tags:
+  - name: Health
+    description: Health check and monitoring endpoints
+  - name: Blog Management
+    description: Blog content creation and management
+  - name: Lead Generation
+    description: Lead capture and tracking from blog content
+  - name: Analytics
+    description: Blog performance and SEO analytics
+  - name: CRM Integration
+    description: Integration with Mejona CRM system
+
+paths:
+  # ============================================================================
+  # HEALTH CHECK ENDPOINTS
+  # ============================================================================
+  /health:
+    get:
+      tags: [Health]
+      summary: Basic health check
+      description: Returns the basic health status of the blog service
+      operationId: getBasicHealth
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              examples:
+                healthy:
+                  summary: Healthy service response
+                  value:
+                    status: healthy
+                    service: blog-service
+                    version: 1.0.0
+                    timestamp: "2025-01-08T12:00:00Z"
+                    uptime: 3600
+        '503':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /health/deep:
+    get:
+      tags: [Health]
+      summary: Comprehensive health check
+      description: Returns detailed health status including database and dependencies
+      operationId: getDeepHealth
+      responses:
+        '200':
+          description: Comprehensive health status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeepHealthResponse'
+        '503':
+          description: Service or dependencies are unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /status:
+    get:
+      tags: [Health]
+      summary: Service status
+      description: Quick status check for the service
+      operationId: getStatus
+      responses:
+        '200':
+          description: Service status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [OK, ERROR]
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /ready:
+    get:
+      tags: [Health]
+      summary: Readiness probe
+      description: Kubernetes-style readiness probe
+      operationId: getReadiness
+      responses:
+        '200':
+          description: Service is ready to accept traffic
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ready:
+                    type: boolean
+                    example: true
+
+  /alive:
+    get:
+      tags: [Health]
+      summary: Liveness probe
+      description: Kubernetes-style liveness probe
+      operationId: getLiveness
+      responses:
+        '200':
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  alive:
+                    type: boolean
+                    example: true
+
+  /metrics:
+    get:
+      tags: [Health]
+      summary: Service metrics
+      description: Returns Prometheus-style metrics for monitoring
+      operationId: getMetrics
+      responses:
+        '200':
+          description: Service metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+
+  # ============================================================================
+  # API ENDPOINTS
+  # ============================================================================
+  /api/v1/test:
+    get:
+      tags: [Health]
+      summary: API test endpoint
+      description: Test endpoint to verify API functionality
+      operationId: testAPI
+      responses:
+        '200':
+          description: API test successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Blog service test endpoint working"
+                  data:
+                    type: object
+                    properties:
+                      service:
+                        type: string
+                        example: "Blog CRM Management Microservice"
+                      version:
+                        type: string
+                        example: "1.0.0"
+                      status:
+                        type: string
+                        example: "operational"
+                      port:
+                        type: string
+                        example: "8082"
+                      timestamp:
+                        type: string
+                        format: date-time
+
+  /api/v1/blogs:
+    get:
+      tags: [Blog Management]
+      summary: List all blog posts
+      description: Retrieve a paginated list of blog posts with optional filtering
+      operationId: listBlogs
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: status
+          in: query
+          description: Filter by blog post status
+          schema:
+            type: string
+            enum: [draft, published, archived]
+        - name: category
+          in: query
+          description: Filter by category
+          schema:
+            type: string
+        - name: search
+          in: query
+          description: Search in title and content
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Blog posts retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlogListResponse'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+
+    post:
+      tags: [Blog Management]
+      summary: Create a new blog post
+      description: Create a new blog post with content and metadata
+      operationId: createBlog
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBlogRequest'
+      responses:
+        '201':
+          description: Blog post created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlogResponse'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+
+  /api/v1/blogs/{id}:
+    get:
+      tags: [Blog Management]
+      summary: Get blog post by ID
+      description: Retrieve a specific blog post by its ID
+      operationId: getBlogById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Blog post ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Blog post retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlogResponse'
+        '404':
+          description: Blog post not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [Blog Management]
+      summary: Update blog post
+      description: Update an existing blog post
+      operationId: updateBlog
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Blog post ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBlogRequest'
+      responses:
+        '200':
+          description: Blog post updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlogResponse'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Blog post not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+
+    delete:
+      tags: [Blog Management]
+      summary: Delete blog post
+      description: Delete a blog post by ID
+      operationId: deleteBlog
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Blog post ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Blog post deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Blog post deleted successfully"
+        '404':
+          description: Blog post not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+
+  # ============================================================================
+  # LEAD GENERATION ENDPOINTS
+  # ============================================================================
+  /api/v1/blogs/{id}/leads:
+    post:
+      tags: [Lead Generation]
+      summary: Capture lead from blog post
+      description: Capture a lead generated from a blog post interaction
+      operationId: captureLead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Blog post ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeadCaptureRequest'
+      responses:
+        '201':
+          description: Lead captured successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeadResponse'
+        '400':
+          description: Invalid lead data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/leads:
+    get:
+      tags: [Lead Generation]
+      summary: List captured leads
+      description: Retrieve a list of leads captured from blog posts
+      operationId: listLeads
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: source
+          in: query
+          description: Filter by lead source (blog post ID)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Leads retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeadListResponse'
+      security:
+        - bearerAuth: []
+
+  # ============================================================================
+  # ANALYTICS ENDPOINTS
+  # ============================================================================
+  /api/v1/analytics/blogs/{id}:
+    get:
+      tags: [Analytics]
+      summary: Get blog post analytics
+      description: Retrieve detailed analytics for a specific blog post
+      operationId: getBlogAnalytics
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Blog post ID
+          schema:
+            type: string
+            format: uuid
+        - name: period
+          in: query
+          description: Time period for analytics
+          schema:
+            type: string
+            enum: [24h, 7d, 30d, 90d]
+            default: 7d
+      responses:
+        '200':
+          description: Blog analytics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlogAnalyticsResponse'
+        '404':
+          description: Blog post not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+
+  /api/v1/analytics/dashboard:
+    get:
+      tags: [Analytics]
+      summary: Get analytics dashboard
+      description: Retrieve overall blog analytics dashboard data
+      operationId: getAnalyticsDashboard
+      parameters:
+        - name: period
+          in: query
+          description: Time period for dashboard data
+          schema:
+            type: string
+            enum: [24h, 7d, 30d, 90d]
+            default: 30d
+      responses:
+        '200':
+          description: Dashboard analytics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardAnalyticsResponse'
+      security:
+        - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Bearer token authentication
+
+  schemas:
+    # ========================================================================
+    # HEALTH RESPONSES
+    # ========================================================================
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+          example: healthy
+        service:
+          type: string
+          example: blog-service
+        version:
+          type: string
+          example: 1.0.0
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-01-08T12:00:00Z"
+        uptime:
+          type: integer
+          description: Uptime in seconds
+          example: 3600
+
+    DeepHealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+        service:
+          type: string
+          example: blog-service
+        version:
+          type: string
+          example: 1.0.0
+        timestamp:
+          type: string
+          format: date-time
+        uptime:
+          type: integer
+          description: Uptime in seconds
+        checks:
+          type: object
+          properties:
+            database:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [connected, disconnected]
+                response_time:
+                  type: string
+                  example: "5ms"
+            redis:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [connected, disconnected]
+                response_time:
+                  type: string
+                  example: "2ms"
+        system:
+          type: object
+          properties:
+            memory:
+              type: object
+              properties:
+                used:
+                  type: string
+                  example: "45MB"
+                available:
+                  type: string
+                  example: "512MB"
+            goroutines:
+              type: integer
+              example: 25
+
+    MetricsResponse:
+      type: object
+      properties:
+        metrics:
+          type: object
+          properties:
+            requests_total:
+              type: integer
+              example: 1500
+            requests_per_second:
+              type: number
+              format: float
+              example: 12.5
+            response_time_avg:
+              type: string
+              example: "150ms"
+            uptime_seconds:
+              type: integer
+              example: 7200
+            memory_usage_bytes:
+              type: integer
+              example: 45000000
+            goroutines_count:
+              type: integer
+              example: 25
+        timestamp:
+          type: string
+          format: date-time
+
+    # ========================================================================
+    # BLOG SCHEMAS
+    # ========================================================================
+    BlogResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        title:
+          type: string
+          example: "How to Build Modern Web Applications"
+        slug:
+          type: string
+          example: "how-to-build-modern-web-applications"
+        content:
+          type: string
+          example: "In this comprehensive guide, we'll explore..."
+        excerpt:
+          type: string
+          example: "Learn the essentials of modern web development..."
+        status:
+          type: string
+          enum: [draft, published, archived]
+          example: published
+        category:
+          type: string
+          example: "Technology"
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["web-development", "javascript", "react"]
+        author:
+          $ref: '#/components/schemas/Author'
+        seo:
+          $ref: '#/components/schemas/SEOData'
+        metadata:
+          type: object
+          properties:
+            read_time:
+              type: integer
+              description: Estimated read time in minutes
+              example: 8
+            word_count:
+              type: integer
+              example: 1500
+            featured_image:
+              type: string
+              format: uri
+              example: "https://mejona.in/images/blog/featured-image.jpg"
+        analytics:
+          type: object
+          properties:
+            views:
+              type: integer
+              example: 1250
+            shares:
+              type: integer
+              example: 45
+            leads_generated:
+              type: integer
+              example: 12
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        published_at:
+          type: string
+          format: date-time
+
+    CreateBlogRequest:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          example: "How to Build Modern Web Applications"
+        slug:
+          type: string
+          pattern: "^[a-z0-9-]+$"
+          example: "how-to-build-modern-web-applications"
+        content:
+          type: string
+          minLength: 1
+          example: "In this comprehensive guide, we'll explore..."
+        excerpt:
+          type: string
+          maxLength: 500
+          example: "Learn the essentials of modern web development..."
+        status:
+          type: string
+          enum: [draft, published]
+          default: draft
+        category:
+          type: string
+          example: "Technology"
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["web-development", "javascript", "react"]
+        seo:
+          $ref: '#/components/schemas/SEODataInput'
+        metadata:
+          type: object
+          properties:
+            featured_image:
+              type: string
+              format: uri
+              example: "https://mejona.in/images/blog/featured-image.jpg"
+        publish_at:
+          type: string
+          format: date-time
+          description: Schedule publication time
+
+    UpdateBlogRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        slug:
+          type: string
+          pattern: "^[a-z0-9-]+$"
+        content:
+          type: string
+          minLength: 1
+        excerpt:
+          type: string
+          maxLength: 500
+        status:
+          type: string
+          enum: [draft, published, archived]
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        seo:
+          $ref: '#/components/schemas/SEODataInput'
+        metadata:
+          type: object
+          properties:
+            featured_image:
+              type: string
+              format: uri
+
+    BlogListResponse:
+      type: object
+      properties:
+        blogs:
+          type: array
+          items:
+            $ref: '#/components/schemas/BlogResponse'
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
+        total:
+          type: integer
+          example: 150
+        filters:
+          type: object
+          properties:
+            status:
+              type: string
+            category:
+              type: string
+            search:
+              type: string
+
+    # ========================================================================
+    # LEAD GENERATION SCHEMAS
+    # ========================================================================
+    LeadCaptureRequest:
+      type: object
+      required:
+        - email
+        - source_type
+      properties:
+        email:
+          type: string
+          format: email
+          example: "john.doe@example.com"
+        name:
+          type: string
+          example: "John Doe"
+        phone:
+          type: string
+          example: "+91 9876543210"
+        company:
+          type: string
+          example: "Tech Solutions Inc."
+        source_type:
+          type: string
+          enum: [newsletter, download, contact_form, webinar]
+          example: newsletter
+        utm_source:
+          type: string
+          example: "google"
+        utm_medium:
+          type: string
+          example: "organic"
+        utm_campaign:
+          type: string
+          example: "blog-promotion"
+        additional_data:
+          type: object
+          description: Additional custom fields
+          example:
+            interest: "web-development"
+            budget: "10k-50k"
+
+    LeadResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        phone:
+          type: string
+        company:
+          type: string
+        source_blog_id:
+          type: string
+          format: uuid
+        source_type:
+          type: string
+          enum: [newsletter, download, contact_form, webinar]
+        utm_data:
+          type: object
+          properties:
+            source:
+              type: string
+            medium:
+              type: string
+            campaign:
+              type: string
+        lead_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 75
+        status:
+          type: string
+          enum: [new, contacted, qualified, converted, lost]
+          example: new
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    LeadListResponse:
+      type: object
+      properties:
+        leads:
+          type: array
+          items:
+            $ref: '#/components/schemas/LeadResponse'
+        pagination:
+          $ref: '#/components/schemas/PaginationResponse'
+        total:
+          type: integer
+        summary:
+          type: object
+          properties:
+            total_leads:
+              type: integer
+            new_leads:
+              type: integer
+            qualified_leads:
+              type: integer
+            conversion_rate:
+              type: number
+              format: float
+
+    # ========================================================================
+    # ANALYTICS SCHEMAS
+    # ========================================================================
+    BlogAnalyticsResponse:
+      type: object
+      properties:
+        blog_id:
+          type: string
+          format: uuid
+        period:
+          type: string
+          example: "7d"
+        metrics:
+          type: object
+          properties:
+            views:
+              type: object
+              properties:
+                total:
+                  type: integer
+                  example: 1250
+                unique:
+                  type: integer
+                  example: 980
+                daily_breakdown:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      date:
+                        type: string
+                        format: date
+                      views:
+                        type: integer
+            engagement:
+              type: object
+              properties:
+                average_time_on_page:
+                  type: string
+                  example: "4m 32s"
+                bounce_rate:
+                  type: number
+                  format: float
+                  example: 35.5
+                scroll_depth:
+                  type: number
+                  format: float
+                  example: 78.2
+            leads:
+              type: object
+              properties:
+                total_generated:
+                  type: integer
+                  example: 12
+                conversion_rate:
+                  type: number
+                  format: float
+                  example: 0.96
+            social:
+              type: object
+              properties:
+                shares:
+                  type: integer
+                  example: 45
+                comments:
+                  type: integer
+                  example: 8
+            seo:
+              type: object
+              properties:
+                search_ranking:
+                  type: integer
+                  example: 3
+                organic_traffic:
+                  type: integer
+                  example: 750
+                keyword_positions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      keyword:
+                        type: string
+                      position:
+                        type: integer
+
+    DashboardAnalyticsResponse:
+      type: object
+      properties:
+        period:
+          type: string
+          example: "30d"
+        overview:
+          type: object
+          properties:
+            total_blogs:
+              type: integer
+              example: 45
+            published_blogs:
+              type: integer
+              example: 32
+            draft_blogs:
+              type: integer
+              example: 13
+            total_views:
+              type: integer
+              example: 15750
+            total_leads:
+              type: integer
+              example: 234
+            conversion_rate:
+              type: number
+              format: float
+              example: 1.48
+        top_performing_blogs:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              title:
+                type: string
+              views:
+                type: integer
+              leads:
+                type: integer
+              conversion_rate:
+                type: number
+                format: float
+        traffic_sources:
+          type: object
+          properties:
+            organic:
+              type: integer
+              example: 8750
+            direct:
+              type: integer
+              example: 3200
+            social:
+              type: integer
+              example: 2100
+            referral:
+              type: integer
+              example: 1700
+        monthly_trends:
+          type: array
+          items:
+            type: object
+            properties:
+              month:
+                type: string
+                format: date
+              views:
+                type: integer
+              leads:
+                type: integer
+              blogs_published:
+                type: integer
+
+    # ========================================================================
+    # SUPPORTING SCHEMAS
+    # ========================================================================
+    Author:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "Sarah Johnson"
+        email:
+          type: string
+          format: email
+          example: "sarah.johnson@mejona.com"
+        bio:
+          type: string
+          example: "Senior Web Developer at Mejona Technology"
+        avatar:
+          type: string
+          format: uri
+          example: "https://mejona.in/images/team/sarah.jpg"
+
+    SEOData:
+      type: object
+      properties:
+        meta_title:
+          type: string
+          example: "How to Build Modern Web Applications | Mejona Technology"
+        meta_description:
+          type: string
+          example: "Learn the essentials of modern web development with our comprehensive guide covering React, Node.js, and best practices."
+        canonical_url:
+          type: string
+          format: uri
+          example: "https://mejona.in/blog/how-to-build-modern-web-applications"
+        keywords:
+          type: array
+          items:
+            type: string
+          example: ["web development", "React", "Node.js", "modern apps"]
+        og_title:
+          type: string
+          example: "How to Build Modern Web Applications"
+        og_description:
+          type: string
+          example: "Learn the essentials of modern web development"
+        og_image:
+          type: string
+          format: uri
+          example: "https://mejona.in/images/blog/og-image.jpg"
+
+    SEODataInput:
+      type: object
+      properties:
+        meta_title:
+          type: string
+          maxLength: 60
+        meta_description:
+          type: string
+          maxLength: 160
+        keywords:
+          type: array
+          items:
+            type: string
+        og_title:
+          type: string
+        og_description:
+          type: string
+        og_image:
+          type: string
+          format: uri
+
+    PaginationResponse:
+      type: object
+      properties:
+        current_page:
+          type: integer
+          example: 1
+        per_page:
+          type: integer
+          example: 20
+        total_pages:
+          type: integer
+          example: 8
+        has_next:
+          type: boolean
+          example: true
+        has_previous:
+          type: boolean
+          example: false
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+              example: "Invalid request parameters"
+            details:
+              type: object
+              example:
+                field: "email"
+                reason: "invalid_format"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-01-08T12:00:00Z"
+        path:
+          type: string
+          example: "/api/v1/blogs"
