@@ -63,16 +63,16 @@ func DetailedRequestLogger() gin.HandlerFunc {
 
 		// Log detailed request information
 		fields := map[string]interface{}{
-			"request_id":    requestID,
-			"method":        c.Request.Method,
-			"path":          c.Request.URL.Path,
-			"query":         c.Request.URL.RawQuery,
-			"status_code":   c.Writer.Status(),
-			"duration_ms":   duration.Milliseconds(),
-			"client_ip":     c.ClientIP(),
-			"user_agent":    c.Request.UserAgent(),
-			"referer":       c.Request.Referer(),
-			"content_type":  c.Request.Header.Get("Content-Type"),
+			"request_id":     requestID,
+			"method":         c.Request.Method,
+			"path":           c.Request.URL.Path,
+			"query":          c.Request.URL.RawQuery,
+			"status_code":    c.Writer.Status(),
+			"duration_ms":    duration.Milliseconds(),
+			"client_ip":      c.ClientIP(),
+			"user_agent":     c.Request.UserAgent(),
+			"referer":        c.Request.Referer(),
+			"content_type":   c.Request.Header.Get("Content-Type"),
 			"content_length": c.Request.ContentLength,
 		}
 
@@ -226,4 +226,3 @@ func SecurityEventLogger() gin.HandlerFunc {
 		}
 	}
 }
-

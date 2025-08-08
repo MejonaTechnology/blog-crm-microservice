@@ -95,15 +95,15 @@ func InitDB() error {
 // loadConfig loads database configuration from environment variables
 func loadConfig() (*DatabaseConfig, error) {
 	config := &DatabaseConfig{
-		Host:            getEnv("DB_HOST", "localhost"),
-		User:            getEnv("DB_USER", "root"),
-		Password:        getEnv("DB_PASSWORD", ""),
-		DBName:          getEnv("DB_NAME", "mejona_unified"),
-		Port:            getEnv("DB_PORT", "3306"),
-		Charset:         getEnv("DB_CHARSET", "utf8mb4"),
-		ParseTime:       getEnvBool("DB_PARSE_TIME", true),
-		Location:        getEnv("DB_LOCATION", "UTC"),
-		SSLMode:         getEnvBool("DB_SSL_MODE", false),
+		Host:      getEnv("DB_HOST", "localhost"),
+		User:      getEnv("DB_USER", "root"),
+		Password:  getEnv("DB_PASSWORD", ""),
+		DBName:    getEnv("DB_NAME", "mejona_unified"),
+		Port:      getEnv("DB_PORT", "3306"),
+		Charset:   getEnv("DB_CHARSET", "utf8mb4"),
+		ParseTime: getEnvBool("DB_PARSE_TIME", true),
+		Location:  getEnv("DB_LOCATION", "UTC"),
+		SSLMode:   getEnvBool("DB_SSL_MODE", false),
 	}
 
 	// Parse integer configurations
@@ -211,13 +211,13 @@ func GetConnectionStats() map[string]interface{} {
 
 	stats := sqlDB.Stats()
 	return map[string]interface{}{
-		"connected":        true,
-		"open_connections": stats.OpenConnections,
-		"in_use":          stats.InUse,
-		"idle":            stats.Idle,
-		"wait_count":      stats.WaitCount,
-		"wait_duration":   stats.WaitDuration.String(),
-		"max_idle_closed": stats.MaxIdleClosed,
+		"connected":           true,
+		"open_connections":    stats.OpenConnections,
+		"in_use":              stats.InUse,
+		"idle":                stats.Idle,
+		"wait_count":          stats.WaitCount,
+		"wait_duration":       stats.WaitDuration.String(),
+		"max_idle_closed":     stats.MaxIdleClosed,
 		"max_lifetime_closed": stats.MaxLifetimeClosed,
 	}
 }

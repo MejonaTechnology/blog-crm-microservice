@@ -27,7 +27,7 @@ func CORS() gin.HandlerFunc {
 		}
 
 		origin := c.Request.Header.Get("Origin")
-		
+
 		// Check if origin is allowed
 		allowed := false
 		for _, allowedOrigin := range allowedOrigins {

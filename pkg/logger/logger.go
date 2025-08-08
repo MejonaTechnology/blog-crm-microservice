@@ -92,15 +92,15 @@ func Error(message string, err error, fields map[string]interface{}) {
 	if Logger == nil {
 		InitLogger()
 	}
-	
+
 	if fields == nil {
 		fields = make(map[string]interface{})
 	}
-	
+
 	if err != nil {
 		fields["error"] = err.Error()
 	}
-	
+
 	Logger.WithFields(fields).Error(message)
 }
 
@@ -120,11 +120,11 @@ func LogAPIRequest(method, path string, userID *uint, duration time.Duration, st
 		"duration_ms": duration.Milliseconds(),
 		"status_code": statusCode,
 	}
-	
+
 	if userID != nil {
 		fields["user_id"] = *userID
 	}
-	
+
 	if statusCode >= 500 {
 		Error("API request failed with server error", nil, fields)
 	} else if statusCode >= 400 {
@@ -141,11 +141,11 @@ func LogPerformanceMetric(metric string, value float64, unit string, tags map[st
 		"value":  value,
 		"unit":   unit,
 	}
-	
+
 	for k, v := range tags {
 		fields["tag_"+k] = v
 	}
-	
+
 	Debug("Performance metric recorded", fields)
 }
 
@@ -155,15 +155,15 @@ func LogSecurityEvent(event string, userID *uint, ipAddress string, details map[
 		"security_event": event,
 		"ip_address":     ipAddress,
 	}
-	
+
 	if userID != nil {
 		fields["user_id"] = *userID
 	}
-	
+
 	for k, v := range details {
 		fields[k] = v
 	}
-	
+
 	Warn("Security event detected", fields)
 }
 
@@ -174,11 +174,11 @@ func LogDatabaseOperation(operation, table string, recordID interface{}, duratio
 		"table":        table,
 		"duration_ms":  duration.Milliseconds(),
 	}
-	
+
 	if recordID != nil {
 		fields["record_id"] = recordID
 	}
-	
+
 	if err != nil {
 		fields["error"] = err.Error()
 		Error("Database operation failed", err, fields)
@@ -193,15 +193,15 @@ func LogBusinessEvent(event, entityType string, entityID interface{}, details ma
 		"business_event": event,
 		"entity_type":    entityType,
 	}
-	
+
 	if entityID != nil {
 		fields["entity_id"] = entityID
 	}
-	
+
 	for k, v := range details {
 		fields[k] = v
 	}
-	
+
 	Info("Business event logged", fields)
 }
 

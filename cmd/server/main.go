@@ -57,7 +57,7 @@ func main() {
 	}
 
 	router := gin.New()
-	
+
 	// Add essential middleware
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
@@ -117,7 +117,7 @@ func main() {
 	log.Printf("    GET  /api/v1/test - Test endpoint")
 	log.Printf("  DOCUMENTATION:")
 	log.Printf("    GET  /swagger/index.html - API Documentation (if enabled)")
-	
+
 	if err := router.Run(":" + port); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}

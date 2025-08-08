@@ -18,10 +18,10 @@ func NewSEOAnalyzer() *SEOAnalyzer {
 // AnalyzeContent performs comprehensive SEO analysis on blog content
 func (sa *SEOAnalyzer) AnalyzeContent(content ContentData) SEOAnalysis {
 	analysis := SEOAnalysis{
-		ContentID:   content.ID,
-		Title:       content.Title,
-		URL:         content.URL,
-		AnalyzedAt:  time.Now(),
+		ContentID:  content.ID,
+		Title:      content.Title,
+		URL:        content.URL,
+		AnalyzedAt: time.Now(),
 	}
 
 	// Analyze title optimization
@@ -85,11 +85,11 @@ func (sa *SEOAnalyzer) analyzeTitleSEO(title, primaryKeyword string) TitleAnalys
 	// Check primary keyword presence
 	titleLower := strings.ToLower(title)
 	keywordLower := strings.ToLower(primaryKeyword)
-	
+
 	if keywordLower != "" {
 		if strings.Contains(titleLower, keywordLower) {
 			analysis.ContainsPrimaryKeyword = true
-			
+
 			// Check keyword position (beginning is better)
 			position := strings.Index(titleLower, keywordLower)
 			if position == 0 {
@@ -148,7 +148,7 @@ func (sa *SEOAnalyzer) analyzeMetaDescription(metaDescription, primaryKeyword st
 	if primaryKeyword != "" {
 		metaLower := strings.ToLower(metaDescription)
 		keywordLower := strings.ToLower(primaryKeyword)
-		
+
 		if strings.Contains(metaLower, keywordLower) {
 			analysis.ContainsPrimaryKeyword = true
 			analysis.KeywordScore = 100
@@ -169,7 +169,7 @@ func (sa *SEOAnalyzer) analyzeMetaDescription(metaDescription, primaryKeyword st
 			break
 		}
 	}
-	
+
 	if analysis.CallToAction {
 		analysis.CTAScore = 100
 	} else {
@@ -205,7 +205,7 @@ func (sa *SEOAnalyzer) analyzeContentStructure(content string, headings []Headin
 	h1Count := 0
 	h2Count := 0
 	h3Count := 0
-	
+
 	for _, heading := range headings {
 		switch heading.Level {
 		case 1:
@@ -275,7 +275,7 @@ func (sa *SEOAnalyzer) analyzeKeywordOptimization(content ContentData) KeywordAn
 
 	contentText := content.Content
 	wordCount := sa.countWords(contentText)
-	
+
 	if wordCount == 0 {
 		return analysis
 	}
@@ -285,13 +285,13 @@ func (sa *SEOAnalyzer) analyzeKeywordOptimization(content ContentData) KeywordAn
 	// Analyze primary keyword
 	if content.PrimaryKeyword != "" {
 		primaryKeywordLower := strings.ToLower(content.PrimaryKeyword)
-		
+
 		// Count primary keyword occurrences
 		analysis.PrimaryKeywordCount = strings.Count(contentLower, primaryKeywordLower)
-		
+
 		// Calculate keyword density
 		analysis.PrimaryKeywordDensity = (float64(analysis.PrimaryKeywordCount) / float64(wordCount)) * 100
-		
+
 		// Optimal keyword density: 1-2%
 		if analysis.PrimaryKeywordDensity >= 1.0 && analysis.PrimaryKeywordDensity <= 2.0 {
 			analysis.PrimaryKeywordScore = 100
@@ -322,11 +322,11 @@ func (sa *SEOAnalyzer) analyzeKeywordOptimization(content ContentData) KeywordAn
 		if secondaryKeyword == "" {
 			continue
 		}
-		
+
 		secondaryKeywordLower := strings.ToLower(secondaryKeyword)
 		count := strings.Count(contentLower, secondaryKeywordLower)
 		density := (float64(count) / float64(wordCount)) * 100
-		
+
 		analysis.SecondaryKeywordData = append(analysis.SecondaryKeywordData, SecondaryKeywordData{
 			Keyword: secondaryKeyword,
 			Count:   count,
@@ -396,13 +396,13 @@ func (sa *SEOAnalyzer) analyzeReadability(content string) ReadabilityAnalysis {
 	// Check for transition words
 	transitionWords := []string{"however", "therefore", "furthermore", "moreover", "additionally", "consequently", "meanwhile", "nevertheless", "similarly", "in contrast", "on the other hand", "in addition", "for example", "for instance"}
 	contentLower := strings.ToLower(content)
-	
+
 	for _, word := range transitionWords {
 		if strings.Contains(contentLower, word) {
 			analysis.TransitionWords = append(analysis.TransitionWords, word)
 		}
 	}
-	
+
 	analysis.TransitionWordScore = math.Min(float64(len(analysis.TransitionWords))*15, 100)
 
 	return analysis
@@ -622,17 +622,17 @@ func (sa *SEOAnalyzer) countSyllables(text string) int {
 	// Simplified syllable counting
 	words := strings.Fields(text)
 	totalSyllables := 0
-	
+
 	for _, word := range words {
 		word = strings.ToLower(regexp.MustCompile(`[^a-z]`).ReplaceAllString(word, ""))
 		if word == "" {
 			continue
 		}
-		
+
 		syllables := 0
 		vowels := "aeiouy"
 		prevWasVowel := false
-		
+
 		for _, char := range word {
 			isVowel := strings.ContainsRune(vowels, char)
 			if isVowel && !prevWasVowel {
@@ -640,20 +640,20 @@ func (sa *SEOAnalyzer) countSyllables(text string) int {
 			}
 			prevWasVowel = isVowel
 		}
-		
+
 		// Silent 'e' rule
 		if strings.HasSuffix(word, "e") && syllables > 1 {
 			syllables--
 		}
-		
+
 		// Minimum 1 syllable per word
 		if syllables == 0 {
 			syllables = 1
 		}
-		
+
 		totalSyllables += syllables
 	}
-	
+
 	return totalSyllables
 }
 
@@ -670,10 +670,10 @@ func (sa *SEOAnalyzer) identifyLSIKeywords(content, primaryKeyword string) []str
 	// In a real implementation, this would use more sophisticated NLP
 	primaryLower := strings.ToLower(primaryKeyword)
 	contentLower := strings.ToLower(content)
-	
+
 	// Define some common LSI patterns based on primary keyword
 	lsiKeywords := []string{}
-	
+
 	// This is a simplified example - real LSI would be much more sophisticated
 	if strings.Contains(primaryLower, "seo") {
 		potentialLSI := []string{"search engine", "optimization", "ranking", "keywords", "google", "content marketing", "backlinks", "meta tags"}
@@ -683,14 +683,14 @@ func (sa *SEOAnalyzer) identifyLSIKeywords(content, primaryKeyword string) []str
 			}
 		}
 	}
-	
+
 	return lsiKeywords
 }
 
 func (sa *SEOAnalyzer) analyzeSentenceLengths(content string) SentenceLengthAnalysis {
 	sentences := regexp.MustCompile(`[.!?]+`).Split(content, -1)
 	analysis := SentenceLengthAnalysis{}
-	
+
 	var lengths []int
 	for _, sentence := range sentences {
 		words := strings.Fields(strings.TrimSpace(sentence))
@@ -698,11 +698,11 @@ func (sa *SEOAnalyzer) analyzeSentenceLengths(content string) SentenceLengthAnal
 			lengths = append(lengths, len(words))
 		}
 	}
-	
+
 	if len(lengths) == 0 {
 		return analysis
 	}
-	
+
 	// Calculate statistics
 	sum := 0
 	for _, length := range lengths {
@@ -714,9 +714,9 @@ func (sa *SEOAnalyzer) analyzeSentenceLengths(content string) SentenceLengthAnal
 			analysis.ShortestSentence = length
 		}
 	}
-	
+
 	analysis.AverageLength = float64(sum) / float64(len(lengths))
-	
+
 	// Count sentences by length category
 	for _, length := range lengths {
 		if length <= 10 {
@@ -727,7 +727,7 @@ func (sa *SEOAnalyzer) analyzeSentenceLengths(content string) SentenceLengthAnal
 			analysis.LongSentences++
 		}
 	}
-	
+
 	return analysis
 }
 
@@ -736,7 +736,7 @@ func (sa *SEOAnalyzer) analyzeURL(url, primaryKeyword string) URLAnalysis {
 		URL:    url,
 		Length: len(url),
 	}
-	
+
 	// Check URL length (optimal: under 75 characters)
 	if analysis.Length <= 75 {
 		analysis.LengthScore = 100
@@ -748,13 +748,13 @@ func (sa *SEOAnalyzer) analyzeURL(url, primaryKeyword string) URLAnalysis {
 		analysis.LengthScore = 60
 		analysis.LengthStatus = "too_long"
 	}
-	
+
 	// Check for keyword in URL
 	if primaryKeyword != "" {
 		urlLower := strings.ToLower(url)
 		keywordLower := strings.ToLower(primaryKeyword)
 		keywordSlug := strings.ReplaceAll(keywordLower, " ", "-")
-		
+
 		if strings.Contains(urlLower, keywordSlug) || strings.Contains(urlLower, keywordLower) {
 			analysis.ContainsKeyword = true
 			analysis.KeywordScore = 100
@@ -762,7 +762,7 @@ func (sa *SEOAnalyzer) analyzeURL(url, primaryKeyword string) URLAnalysis {
 			analysis.KeywordScore = 30
 		}
 	}
-	
+
 	// Check URL structure
 	if regexp.MustCompile(`^https?://[^/]+/[a-z0-9-]+/?$`).MatchString(strings.ToLower(url)) {
 		analysis.StructureScore = 100
@@ -771,27 +771,27 @@ func (sa *SEOAnalyzer) analyzeURL(url, primaryKeyword string) URLAnalysis {
 		analysis.StructureScore = 70
 		analysis.Structure = "complex"
 	}
-	
+
 	return analysis
 }
 
 func (sa *SEOAnalyzer) analyzeAnchorTexts(links []LinkData) AnchorTextAnalysis {
 	analysis := AnchorTextAnalysis{}
-	
+
 	if len(links) == 0 {
 		return analysis
 	}
-	
+
 	anchorTexts := make(map[string]int)
 	totalLinks := len(links)
-	
+
 	for _, link := range links {
 		anchorText := strings.ToLower(strings.TrimSpace(link.AnchorText))
 		if anchorText != "" {
 			anchorTexts[anchorText]++
 		}
 	}
-	
+
 	// Check for over-optimization (same anchor text used too frequently)
 	maxFrequency := 0
 	for anchorText, count := range anchorTexts {
@@ -800,125 +800,125 @@ func (sa *SEOAnalyzer) analyzeAnchorTexts(links []LinkData) AnchorTextAnalysis {
 			maxFrequency = frequency
 			analysis.MostUsedAnchorText = anchorText
 		}
-		
+
 		if frequency > 30 { // More than 30% is over-optimization
 			analysis.OverOptimizedAnchors = append(analysis.OverOptimizedAnchors, anchorText)
 		}
 	}
-	
+
 	analysis.AnchorTextVariety = len(anchorTexts)
 	analysis.MaxAnchorFrequency = maxFrequency
-	
+
 	// Calculate diversity score
 	if totalLinks > 0 {
 		analysis.DiversityScore = math.Min(float64(analysis.AnchorTextVariety)/float64(totalLinks)*100, 100)
 	}
-	
+
 	return analysis
 }
 
 func (sa *SEOAnalyzer) isOptimizedFileName(fileName string) bool {
 	// Check if filename contains descriptive words and uses hyphens
 	fileName = strings.ToLower(fileName)
-	
+
 	// Remove file extension
 	if dotIndex := strings.LastIndex(fileName, "."); dotIndex > 0 {
 		fileName = fileName[:dotIndex]
 	}
-	
+
 	// Check for descriptive content (not just numbers or generic names)
 	if regexp.MustCompile(`^(img|image|picture|photo)\d*$`).MatchString(fileName) {
 		return false
 	}
-	
+
 	// Check for proper formatting (uses hyphens, no underscores or spaces)
 	if strings.Contains(fileName, "_") || strings.Contains(fileName, " ") {
 		return false
 	}
-	
+
 	// Check for meaningful content (at least 3 characters and contains letters)
 	if len(fileName) < 3 || !regexp.MustCompile(`[a-z]`).MatchString(fileName) {
 		return false
 	}
-	
+
 	return true
 }
 
 // generateRecommendations generates actionable SEO recommendations
 func (sa *SEOAnalyzer) generateRecommendations(analysis SEOAnalysis) []string {
 	var recommendations []string
-	
+
 	// Title recommendations
 	if analysis.TitleAnalysis.LengthStatus == "too_short" {
 		recommendations = append(recommendations, "Expand your title to 50-60 characters for optimal search engine display")
 	} else if analysis.TitleAnalysis.LengthStatus == "too_long" {
 		recommendations = append(recommendations, "Shorten your title to under 60 characters to avoid truncation in search results")
 	}
-	
+
 	if !analysis.TitleAnalysis.ContainsPrimaryKeyword {
 		recommendations = append(recommendations, "Include your primary keyword in the title, preferably near the beginning")
 	}
-	
+
 	// Meta description recommendations
 	if analysis.MetaAnalysis.LengthStatus == "too_short" {
 		recommendations = append(recommendations, "Expand your meta description to 150-160 characters for better search result display")
 	} else if analysis.MetaAnalysis.LengthStatus == "too_long" {
 		recommendations = append(recommendations, "Shorten your meta description to under 160 characters")
 	}
-	
+
 	if !analysis.MetaAnalysis.CallToAction {
 		recommendations = append(recommendations, "Add a compelling call-to-action to your meta description")
 	}
-	
+
 	// Content structure recommendations
 	if analysis.StructureAnalysis.H1Status == "missing" {
 		recommendations = append(recommendations, "Add an H1 heading to your content for better structure")
 	} else if analysis.StructureAnalysis.H1Status == "multiple" {
 		recommendations = append(recommendations, "Use only one H1 heading per page")
 	}
-	
+
 	if analysis.StructureAnalysis.H2Status == "missing" {
 		recommendations = append(recommendations, "Add H2 subheadings to improve content structure and readability")
 	}
-	
+
 	// Keyword recommendations
 	if analysis.KeywordAnalysis.PrimaryKeywordStatus == "too_low" {
 		recommendations = append(recommendations, "Increase primary keyword usage to 1-2% density")
 	} else if analysis.KeywordAnalysis.PrimaryKeywordStatus == "too_high" {
 		recommendations = append(recommendations, "Reduce primary keyword usage to avoid over-optimization (aim for 1-2% density)")
 	}
-	
+
 	// Readability recommendations
 	if analysis.ReadabilityAnalysis.FleschScore < 60 {
 		recommendations = append(recommendations, "Improve readability by using shorter sentences and simpler words")
 	}
-	
+
 	// Technical recommendations
 	if !analysis.TechnicalAnalysis.HasSchemaMarkup {
 		recommendations = append(recommendations, "Add schema markup to help search engines understand your content better")
 	}
-	
+
 	// Link recommendations
 	if analysis.LinkAnalysis.InternalLinkStatus == "missing" {
 		recommendations = append(recommendations, "Add 3-5 internal links to related content on your website")
 	}
-	
+
 	if analysis.LinkAnalysis.ExternalLinkStatus == "none" {
 		recommendations = append(recommendations, "Include 2-3 links to high-quality external sources for credibility")
 	}
-	
+
 	// Image recommendations
 	if analysis.ImageAnalysis.AltTextScore < 80 {
 		recommendations = append(recommendations, "Add descriptive alt text to all images for better accessibility and SEO")
 	}
-	
+
 	return recommendations
 }
 
 // identifyOpportunities identifies specific optimization opportunities
 func (sa *SEOAnalyzer) identifyOpportunities(analysis SEOAnalysis) []Opportunity {
 	var opportunities []Opportunity
-	
+
 	// High-impact opportunities
 	if !analysis.TitleAnalysis.ContainsPrimaryKeyword {
 		opportunities = append(opportunities, Opportunity{
@@ -931,7 +931,7 @@ func (sa *SEOAnalyzer) identifyOpportunities(analysis SEOAnalysis) []Opportunity
 			Action:      "Edit the title to include your primary keyword, preferably at the beginning",
 		})
 	}
-	
+
 	if analysis.KeywordAnalysis.PrimaryKeywordDensity < 0.5 {
 		opportunities = append(opportunities, Opportunity{
 			Type:        "keyword_optimization",
@@ -943,7 +943,7 @@ func (sa *SEOAnalyzer) identifyOpportunities(analysis SEOAnalysis) []Opportunity
 			Action:      "Naturally incorporate your primary keyword 2-3 more times in the content",
 		})
 	}
-	
+
 	// Medium-impact opportunities
 	if analysis.StructureAnalysis.H2Count < 2 {
 		opportunities = append(opportunities, Opportunity{
@@ -956,7 +956,7 @@ func (sa *SEOAnalyzer) identifyOpportunities(analysis SEOAnalysis) []Opportunity
 			Action:      "Break your content into logical sections with descriptive H2 headings",
 		})
 	}
-	
+
 	if len(analysis.LinkAnalysis.InternalLinks) < 3 {
 		opportunities = append(opportunities, Opportunity{
 			Type:        "internal_linking",
@@ -968,7 +968,7 @@ func (sa *SEOAnalyzer) identifyOpportunities(analysis SEOAnalysis) []Opportunity
 			Action:      "Link to 3-5 related articles or pages on your website",
 		})
 	}
-	
+
 	// Low-impact but easy wins
 	if analysis.ImageAnalysis.AltTextScore < 100 {
 		opportunities = append(opportunities, Opportunity{
@@ -981,7 +981,7 @@ func (sa *SEOAnalyzer) identifyOpportunities(analysis SEOAnalysis) []Opportunity
 			Action:      "Add descriptive alt text to all images, including relevant keywords where appropriate",
 		})
 	}
-	
+
 	if !analysis.TechnicalAnalysis.HasSchemaMarkup {
 		opportunities = append(opportunities, Opportunity{
 			Type:        "schema_markup",
@@ -993,6 +993,6 @@ func (sa *SEOAnalyzer) identifyOpportunities(analysis SEOAnalysis) []Opportunity
 			Action:      "Implement appropriate schema markup (Article, BlogPosting, etc.) for your content type",
 		})
 	}
-	
+
 	return opportunities
 }

@@ -30,12 +30,12 @@ func (ta *TrendAnalyzer) AnalyzeTrends(data []TrendDataPoint) TrendAnalysis {
 	})
 
 	analysis := TrendAnalysis{
-		Points:       len(data),
-		StartDate:    data[0].Date,
-		EndDate:      data[len(data)-1].Date,
-		StartValue:   data[0].Value,
-		EndValue:     data[len(data)-1].Value,
-		DataPoints:   data,
+		Points:     len(data),
+		StartDate:  data[0].Date,
+		EndDate:    data[len(data)-1].Date,
+		StartValue: data[0].Value,
+		EndValue:   data[len(data)-1].Value,
+		DataPoints: data,
 	}
 
 	// Calculate basic statistics
@@ -129,7 +129,7 @@ func (ta *TrendAnalyzer) calculateLinearRegression(data []TrendDataPoint) Linear
 		x := float64(point.Date.Sub(baseTime).Hours() / 24)
 		predicted := slope*x + intercept
 		residual := point.Value - predicted
-		
+
 		ssRes += residual * residual
 		ssTot += (point.Value - meanY) * (point.Value - meanY)
 	}
@@ -303,7 +303,7 @@ func (ta *TrendAnalyzer) detectAnomalies(data []TrendDataPoint) []Anomaly {
 		// Calculate moving average and standard deviation for window
 		sum := 0.0
 		count := 0
-		for j := i - windowSize/2; j <= i + windowSize/2; j++ {
+		for j := i - windowSize/2; j <= i+windowSize/2; j++ {
 			if j != i { // Exclude current point
 				sum += data[j].Value
 				count++
@@ -318,7 +318,7 @@ func (ta *TrendAnalyzer) detectAnomalies(data []TrendDataPoint) []Anomaly {
 
 		// Calculate standard deviation
 		sumSquaredDiff := 0.0
-		for j := i - windowSize/2; j <= i + windowSize/2; j++ {
+		for j := i - windowSize/2; j <= i+windowSize/2; j++ {
 			if j != i {
 				diff := data[j].Value - mean
 				sumSquaredDiff += diff * diff
@@ -413,9 +413,9 @@ func (ta *TrendAnalyzer) generateForecast(data []TrendDataPoint, days int) []For
 	for i := 0; i < days; i++ {
 		forecastDate := lastDate.AddDate(0, 0, i+1)
 		x := float64(forecastDate.Sub(baseTime).Hours() / 24)
-		
+
 		predictedValue := regression.Slope*x + regression.Intercept
-		
+
 		// Add confidence interval based on historical volatility
 		volatility := ta.calculateVolatility(data)
 		confidenceInterval := volatility * 1.96 // 95% confidence interval
@@ -482,26 +482,26 @@ func (ta *TrendAnalyzer) generateInsights(analysis TrendAnalysis) []string {
 // Data structures for trend analysis
 
 type TrendAnalysis struct {
-	Points              int                  `json:"points"`
-	Status              string               `json:"status"`
-	StartDate           time.Time            `json:"start_date"`
-	EndDate             time.Time            `json:"end_date"`
-	StartValue          float64              `json:"start_value"`
-	EndValue            float64              `json:"end_value"`
-	MinValue            float64              `json:"min_value"`
-	MaxValue            float64              `json:"max_value"`
-	AverageValue        float64              `json:"average_value"`
-	LinearRegression    LinearRegression     `json:"linear_regression"`
-	TrendDirection      string               `json:"trend_direction"`
-	TrendStrength       string               `json:"trend_strength"`
-	TotalGrowth         float64              `json:"total_growth"`
-	AverageGrowthRate   float64              `json:"average_growth_rate"`
-	SeasonalityAnalysis SeasonalityAnalysis  `json:"seasonality_analysis"`
-	Anomalies           []Anomaly            `json:"anomalies"`
-	Volatility          float64              `json:"volatility"`
-	Forecast            []ForecastPoint      `json:"forecast"`
-	Insights            []string             `json:"insights"`
-	DataPoints          []TrendDataPoint     `json:"data_points"`
+	Points              int                 `json:"points"`
+	Status              string              `json:"status"`
+	StartDate           time.Time           `json:"start_date"`
+	EndDate             time.Time           `json:"end_date"`
+	StartValue          float64             `json:"start_value"`
+	EndValue            float64             `json:"end_value"`
+	MinValue            float64             `json:"min_value"`
+	MaxValue            float64             `json:"max_value"`
+	AverageValue        float64             `json:"average_value"`
+	LinearRegression    LinearRegression    `json:"linear_regression"`
+	TrendDirection      string              `json:"trend_direction"`
+	TrendStrength       string              `json:"trend_strength"`
+	TotalGrowth         float64             `json:"total_growth"`
+	AverageGrowthRate   float64             `json:"average_growth_rate"`
+	SeasonalityAnalysis SeasonalityAnalysis `json:"seasonality_analysis"`
+	Anomalies           []Anomaly           `json:"anomalies"`
+	Volatility          float64             `json:"volatility"`
+	Forecast            []ForecastPoint     `json:"forecast"`
+	Insights            []string            `json:"insights"`
+	DataPoints          []TrendDataPoint    `json:"data_points"`
 }
 
 type LinearRegression struct {
@@ -511,9 +511,9 @@ type LinearRegression struct {
 }
 
 type SeasonalityAnalysis struct {
-	HasSeasonality     bool                    `json:"has_seasonality"`
-	DayOfWeekPattern   map[time.Weekday]float64 `json:"day_of_week_pattern"`
-	MonthlyPattern     map[int]float64         `json:"monthly_pattern"`
+	HasSeasonality   bool                     `json:"has_seasonality"`
+	DayOfWeekPattern map[time.Weekday]float64 `json:"day_of_week_pattern"`
+	MonthlyPattern   map[int]float64          `json:"monthly_pattern"`
 }
 
 type Anomaly struct {

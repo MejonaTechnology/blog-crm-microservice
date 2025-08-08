@@ -16,10 +16,10 @@ func NewROICalculator() *ROICalculator {
 // CalculateContentROI calculates comprehensive ROI for blog content
 func (rc *ROICalculator) CalculateContentROI(metrics ContentROIMetrics) ContentROIResult {
 	result := ContentROIResult{
-		ContentID:    metrics.ContentID,
-		Title:        metrics.Title,
-		PublishedAt:  metrics.PublishedAt,
-		Period:       metrics.Period,
+		ContentID:   metrics.ContentID,
+		Title:       metrics.Title,
+		PublishedAt: metrics.PublishedAt,
+		Period:      metrics.Period,
 	}
 
 	// Calculate total investment
@@ -233,7 +233,7 @@ func (rc *ROICalculator) CalculateContentPortfolioROI(portfolioMetrics []Content
 
 	for _, metrics := range portfolioMetrics {
 		contentROI := rc.CalculateContentROI(metrics)
-		
+
 		totalInvestment += contentROI.TotalInvestment
 		totalRevenue += contentROI.TotalRevenue
 		allLeads += metrics.Leads
@@ -292,10 +292,10 @@ func (rc *ROICalculator) CalculateROITrends(historicalData []PeriodROIData) ROIT
 		previous := historicalData[i-1]
 
 		change := ROIChange{
-			Period:           current.Period,
-			CurrentROI:       current.ROI,
-			PreviousROI:      previous.ROI,
-			AbsoluteChange:   current.ROI - previous.ROI,
+			Period:         current.Period,
+			CurrentROI:     current.ROI,
+			PreviousROI:    previous.ROI,
+			AbsoluteChange: current.ROI - previous.ROI,
 		}
 
 		if previous.ROI != 0 {
@@ -309,7 +309,7 @@ func (rc *ROICalculator) CalculateROITrends(historicalData []PeriodROIData) ROIT
 	if len(analysis.Changes) > 0 {
 		firstROI := historicalData[0].ROI
 		lastROI := historicalData[len(historicalData)-1].ROI
-		
+
 		if firstROI != 0 {
 			analysis.OverallTrend = ((lastROI - firstROI) / firstROI) * 100
 		}
@@ -341,36 +341,36 @@ func (rc *ROICalculator) CalculateROITrends(historicalData []PeriodROIData) ROIT
 // Data structures for ROI calculations
 
 type ContentROIMetrics struct {
-	ContentID              uint
-	Title                  string
-	PublishedAt            time.Time
-	Period                 int // Days
-	Investment             ContentInvestment
-	DirectConversions      []DirectConversion
-	AttributedConversions  []AttributedConversion
-	AttributionModel       string
-	Leads                  int
-	NewCustomers           int
-	AverageCLV             float64
-	Engagement             EngagementMetrics
-	EngagementValue        EngagementValueMetrics
-	BrandMetrics           BrandMetrics
+	ContentID             uint
+	Title                 string
+	PublishedAt           time.Time
+	Period                int // Days
+	Investment            ContentInvestment
+	DirectConversions     []DirectConversion
+	AttributedConversions []AttributedConversion
+	AttributionModel      string
+	Leads                 int
+	NewCustomers          int
+	AverageCLV            float64
+	Engagement            EngagementMetrics
+	EngagementValue       EngagementValueMetrics
+	BrandMetrics          BrandMetrics
 }
 
 type ContentInvestment struct {
-	CreationCost     float64
-	PromotionCost    float64
-	ToolsCost        float64
-	TimeInvested     float64 // Hours
-	HourlyRate       float64
-	OpportunityCost  float64
+	CreationCost    float64
+	PromotionCost   float64
+	ToolsCost       float64
+	TimeInvested    float64 // Hours
+	HourlyRate      float64
+	OpportunityCost float64
 }
 
 type DirectConversion struct {
-	CustomerID   uint
-	Revenue      float64
-	ConvertedAt  time.Time
-	ProductType  string
+	CustomerID  uint
+	Revenue     float64
+	ConvertedAt time.Time
+	ProductType string
 }
 
 type AttributedConversion struct {
@@ -386,38 +386,38 @@ type AttributedConversion struct {
 }
 
 type EngagementValueMetrics struct {
-	PageViewValue   float64
-	ShareValue      float64
-	CommentValue    float64
-	DownloadValue   float64
-	SignupValue     float64
+	PageViewValue float64
+	ShareValue    float64
+	CommentValue  float64
+	DownloadValue float64
+	SignupValue   float64
 }
 
 type BrandMetrics struct {
-	BrandMentions            float64
-	MentionValue             float64
-	BacklinkValue            float64
-	SearchVisibilityValue    float64
-	ThoughtLeadershipValue   float64
+	BrandMentions          float64
+	MentionValue           float64
+	BacklinkValue          float64
+	SearchVisibilityValue  float64
+	ThoughtLeadershipValue float64
 }
 
 type ContentROIResult struct {
-	ContentID         uint      `json:"content_id"`
-	Title             string    `json:"title"`
-	PublishedAt       time.Time `json:"published_at"`
-	Period            int       `json:"period"`
-	TotalInvestment   float64   `json:"total_investment"`
-	DirectRevenue     float64   `json:"direct_revenue"`
-	IndirectRevenue   float64   `json:"indirect_revenue"`
-	TotalRevenue      float64   `json:"total_revenue"`
-	ROIPercentage     float64   `json:"roi_percentage"`
-	PaybackPeriod     float64   `json:"payback_period"` // Days
-	CLVImpact         float64   `json:"clv_impact"`
-	LeadValue         float64   `json:"lead_value"`
-	CostPerLead       float64   `json:"cost_per_lead"`
-	CostPerAcquisition float64  `json:"cost_per_acquisition"`
-	EngagementValue   float64   `json:"engagement_value"`
-	BrandValue        float64   `json:"brand_value"`
+	ContentID          uint      `json:"content_id"`
+	Title              string    `json:"title"`
+	PublishedAt        time.Time `json:"published_at"`
+	Period             int       `json:"period"`
+	TotalInvestment    float64   `json:"total_investment"`
+	DirectRevenue      float64   `json:"direct_revenue"`
+	IndirectRevenue    float64   `json:"indirect_revenue"`
+	TotalRevenue       float64   `json:"total_revenue"`
+	ROIPercentage      float64   `json:"roi_percentage"`
+	PaybackPeriod      float64   `json:"payback_period"` // Days
+	CLVImpact          float64   `json:"clv_impact"`
+	LeadValue          float64   `json:"lead_value"`
+	CostPerLead        float64   `json:"cost_per_lead"`
+	CostPerAcquisition float64   `json:"cost_per_acquisition"`
+	EngagementValue    float64   `json:"engagement_value"`
+	BrandValue         float64   `json:"brand_value"`
 }
 
 type PortfolioROIResult struct {

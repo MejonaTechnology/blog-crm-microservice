@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package integration
@@ -59,7 +60,7 @@ func (suite *BlogServiceIntegrationSuite) TearDownSuite() {
 	if suite.server != nil {
 		suite.server.Close()
 	}
-	
+
 	// Cleanup test database if needed
 	// Note: Add your database cleanup logic here
 }
@@ -67,7 +68,7 @@ func (suite *BlogServiceIntegrationSuite) TearDownSuite() {
 // setupRouter configures the Gin router for testing
 func (suite *BlogServiceIntegrationSuite) setupRouter() {
 	suite.router = gin.New()
-	
+
 	// Add middleware
 	suite.router.Use(gin.Logger())
 	suite.router.Use(gin.Recovery())
@@ -125,7 +126,7 @@ func (suite *BlogServiceIntegrationSuite) TestHealthEndpoints() {
 			suite.Require().NoError(err)
 			defer resp.Body.Close()
 
-			suite.Equal(tc.expectedStatus, resp.StatusCode, 
+			suite.Equal(tc.expectedStatus, resp.StatusCode,
 				"Expected status %d for %s, got %d", tc.expectedStatus, tc.endpoint, resp.StatusCode)
 
 			if tc.checkResponse {
@@ -153,7 +154,7 @@ func (suite *BlogServiceIntegrationSuite) TestAPIEndpoints() {
 
 		suite.Equal(true, result["success"])
 		suite.Contains(result, "data")
-		
+
 		data, ok := result["data"].(map[string]interface{})
 		suite.True(ok, "Data should be a map")
 		suite.Equal("Blog CRM Management Microservice", data["service"])
@@ -168,7 +169,7 @@ func (suite *BlogServiceIntegrationSuite) TestCORSHeaders() {
 	suite.Run("CORS Headers Present", func() {
 		req, err := http.NewRequest("OPTIONS", suite.server.URL+"/api/v1/test", nil)
 		suite.Require().NoError(err)
-		
+
 		req.Header.Set("Origin", "http://localhost:3000")
 		req.Header.Set("Access-Control-Request-Method", "GET")
 
@@ -191,16 +192,16 @@ func (suite *BlogServiceIntegrationSuite) TestResponseTimes() {
 	for _, endpoint := range endpoints {
 		suite.Run(fmt.Sprintf("Response Time %s", endpoint), func() {
 			start := time.Now()
-			
+
 			resp, err := http.Get(suite.server.URL + endpoint)
 			suite.Require().NoError(err)
 			defer resp.Body.Close()
 
 			elapsed := time.Since(start)
-			suite.True(elapsed < maxResponseTime, 
-				"Response time for %s took %v, expected less than %v", 
+			suite.True(elapsed < maxResponseTime,
+				"Response time for %s took %v, expected less than %v",
 				endpoint, elapsed, maxResponseTime)
-			
+
 			suite.Equal(http.StatusOK, resp.StatusCode)
 		})
 	}
@@ -222,13 +223,13 @@ func (suite *BlogServiceIntegrationSuite) TestConcurrentRequests() {
 						results <- err
 						continue
 					}
-					
+
 					if resp.StatusCode != http.StatusOK {
 						results <- fmt.Errorf("expected status 200, got %d", resp.StatusCode)
 						resp.Body.Close()
 						continue
 					}
-					
+
 					resp.Body.Close()
 					results <- nil
 				}
@@ -238,7 +239,7 @@ func (suite *BlogServiceIntegrationSuite) TestConcurrentRequests() {
 		// Collect results
 		successCount := 0
 		errorCount := 0
-		
+
 		for i := 0; i < concurrency*requests; i++ {
 			if err := <-results; err != nil {
 				suite.T().Logf("Request failed: %v", err)
@@ -248,10 +249,10 @@ func (suite *BlogServiceIntegrationSuite) TestConcurrentRequests() {
 			}
 		}
 
-		suite.True(successCount > errorCount, 
-			"Expected more successes than failures. Success: %d, Errors: %d", 
+		suite.True(successCount > errorCount,
+			"Expected more successes than failures. Success: %d, Errors: %d",
 			successCount, errorCount)
-		
+
 		suite.True(float64(successCount)/float64(successCount+errorCount) > 0.95,
 			"Success rate should be above 95%")
 	})
@@ -342,7 +343,7 @@ func (suite *BlogServiceIntegrationSuite) TestLargePayloads() {
 			c.JSON(http.StatusOK, gin.H{"received": len(data["data"])})
 		})
 
-		resp, err := http.Post(suite.server.URL+"/test/large", 
+		resp, err := http.Post(suite.server.URL+"/test/large",
 			"application/json", bytes.NewReader(payload))
 		suite.Require().NoError(err)
 		defer resp.Body.Close()
@@ -386,7 +387,7 @@ func (suite *BlogServiceIntegrationSuite) TestSecurityHeaders() {
 
 		// Check CORS headers
 		suite.Contains(headers.Get("Access-Control-Allow-Origin"), "*")
-		
+
 		// Note: Additional security headers would be set by nginx in production
 		// These tests verify application-level headers
 	})

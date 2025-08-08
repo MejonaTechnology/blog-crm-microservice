@@ -121,7 +121,7 @@ func (ls *LeadScorer) calculateIntentScore(intent Intent) float64 {
 
 func (ls *LeadScorer) scoreJobTitle(title string) float64 {
 	title = strings.ToLower(title)
-	
+
 	// High-value titles (80-100 points)
 	highValueTitles := []string{"ceo", "cto", "cfo", "cmo", "vp", "vice president", "director", "head of", "chief"}
 	for _, hvt := range highValueTitles {
@@ -151,7 +151,7 @@ func (ls *LeadScorer) scoreJobTitle(title string) float64 {
 
 func (ls *LeadScorer) scoreIndustry(industry string) float64 {
 	industry = strings.ToLower(industry)
-	
+
 	// High-fit industries (technology services company)
 	highFitIndustries := []string{"technology", "software", "saas", "fintech", "healthtech", "edtech", "startup"}
 	for _, hfi := range highFitIndustries {
@@ -173,7 +173,7 @@ func (ls *LeadScorer) scoreIndustry(industry string) float64 {
 
 func (ls *LeadScorer) scoreLocation(location string) float64 {
 	location = strings.ToLower(location)
-	
+
 	// High-value locations (target markets)
 	highValueLocations := []string{"india", "usa", "canada", "uk", "australia", "singapore", "germany", "france"}
 	for _, hvl := range highValueLocations {
@@ -187,7 +187,7 @@ func (ls *LeadScorer) scoreLocation(location string) float64 {
 
 func (ls *LeadScorer) scoreExperienceLevel(experience string) float64 {
 	experience = strings.ToLower(experience)
-	
+
 	if strings.Contains(experience, "senior") || strings.Contains(experience, "lead") {
 		return 80.0
 	} else if strings.Contains(experience, "mid") || strings.Contains(experience, "intermediate") {
@@ -195,7 +195,7 @@ func (ls *LeadScorer) scoreExperienceLevel(experience string) float64 {
 	} else if strings.Contains(experience, "junior") || strings.Contains(experience, "entry") {
 		return 50.0
 	}
-	
+
 	return 60.0 // Default
 }
 
@@ -316,7 +316,7 @@ func (ls *LeadScorer) scoreRecency(lastActivity time.Time) float64 {
 
 func (ls *LeadScorer) scoreCompanySize(size string) float64 {
 	size = strings.ToLower(size)
-	
+
 	if strings.Contains(size, "enterprise") || strings.Contains(size, "large") {
 		return 90.0
 	} else if strings.Contains(size, "medium") || strings.Contains(size, "mid") {
@@ -324,7 +324,7 @@ func (ls *LeadScorer) scoreCompanySize(size string) float64 {
 	} else if strings.Contains(size, "small") || strings.Contains(size, "startup") {
 		return 70.0
 	}
-	
+
 	return 60.0
 }
 
@@ -335,7 +335,7 @@ func (ls *LeadScorer) scoreIndustryFit(industry string) float64 {
 
 func (ls *LeadScorer) scoreRevenue(revenue string) float64 {
 	revenue = strings.ToLower(revenue)
-	
+
 	if strings.Contains(revenue, "100m+") || strings.Contains(revenue, "billion") {
 		return 95.0
 	} else if strings.Contains(revenue, "50m") || strings.Contains(revenue, "10m") {
@@ -345,7 +345,7 @@ func (ls *LeadScorer) scoreRevenue(revenue string) float64 {
 	} else if strings.Contains(revenue, "500k") || strings.Contains(revenue, "1m") {
 		return 65.0
 	}
-	
+
 	return 50.0
 }
 
@@ -356,7 +356,7 @@ func (ls *LeadScorer) scoreTechnologyStack(stack []string) float64 {
 
 	relevantTech := []string{"react", "node", "python", "go", "aws", "azure", "gcp", "kubernetes", "docker"}
 	matchCount := 0
-	
+
 	for _, tech := range stack {
 		techLower := strings.ToLower(tech)
 		for _, relevant := range relevantTech {
@@ -367,7 +367,7 @@ func (ls *LeadScorer) scoreTechnologyStack(stack []string) float64 {
 		}
 	}
 
-	return math.Min(50.0 + float64(matchCount)*10.0, 100.0)
+	return math.Min(50.0+float64(matchCount)*10.0, 100.0)
 }
 
 func (ls *LeadScorer) scoreSourceType(sourceType string) float64 {
@@ -465,18 +465,18 @@ type Demographics struct {
 }
 
 type Behavior struct {
-	PageViews              int
-	TotalTimeOnSite        int // seconds
-	VisitCount             int
-	BlogPostsRead          int
-	Downloads              int
-	VideoWatchTime         int // seconds
-	SocialEngagements      int
-	ServicePagesVisited    bool
-	PricingPagesVisited    bool
-	ContactPagesVisited    bool
-	SearchQueries          int
-	LastActivity           time.Time
+	PageViews           int
+	TotalTimeOnSite     int // seconds
+	VisitCount          int
+	BlogPostsRead       int
+	Downloads           int
+	VideoWatchTime      int // seconds
+	SocialEngagements   int
+	ServicePagesVisited bool
+	PricingPagesVisited bool
+	ContactPagesVisited bool
+	SearchQueries       int
+	LastActivity        time.Time
 }
 
 type Company struct {
@@ -488,8 +488,8 @@ type Company struct {
 }
 
 type Intent struct {
-	SourceType       string
-	ContentTypes     []string
-	CTAInteractions  int
-	FormCompletions  int
+	SourceType      string
+	ContentTypes    []string
+	CTAInteractions int
+	FormCompletions int
 }

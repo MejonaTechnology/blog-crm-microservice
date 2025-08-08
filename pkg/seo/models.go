@@ -50,21 +50,21 @@ type ImageData struct {
 
 // SEOAnalysis represents the complete SEO analysis result
 type SEOAnalysis struct {
-	ContentID          uint                `json:"content_id"`
-	Title              string              `json:"title"`
-	URL                string              `json:"url"`
-	AnalyzedAt         time.Time           `json:"analyzed_at"`
-	OverallScore       int                 `json:"overall_score"`
-	TitleAnalysis      TitleAnalysis       `json:"title_analysis"`
-	MetaAnalysis       MetaAnalysis        `json:"meta_analysis"`
-	StructureAnalysis  StructureAnalysis   `json:"structure_analysis"`
-	KeywordAnalysis    KeywordAnalysis     `json:"keyword_analysis"`
+	ContentID           uint                `json:"content_id"`
+	Title               string              `json:"title"`
+	URL                 string              `json:"url"`
+	AnalyzedAt          time.Time           `json:"analyzed_at"`
+	OverallScore        int                 `json:"overall_score"`
+	TitleAnalysis       TitleAnalysis       `json:"title_analysis"`
+	MetaAnalysis        MetaAnalysis        `json:"meta_analysis"`
+	StructureAnalysis   StructureAnalysis   `json:"structure_analysis"`
+	KeywordAnalysis     KeywordAnalysis     `json:"keyword_analysis"`
 	ReadabilityAnalysis ReadabilityAnalysis `json:"readability_analysis"`
-	TechnicalAnalysis  TechnicalAnalysis   `json:"technical_analysis"`
-	LinkAnalysis       LinkAnalysis        `json:"link_analysis"`
-	ImageAnalysis      ImageAnalysis       `json:"image_analysis"`
-	Recommendations    []string            `json:"recommendations"`
-	Opportunities      []Opportunity       `json:"opportunities"`
+	TechnicalAnalysis   TechnicalAnalysis   `json:"technical_analysis"`
+	LinkAnalysis        LinkAnalysis        `json:"link_analysis"`
+	ImageAnalysis       ImageAnalysis       `json:"image_analysis"`
+	Recommendations     []string            `json:"recommendations"`
+	Opportunities       []Opportunity       `json:"opportunities"`
 }
 
 // TitleAnalysis represents title tag analysis
@@ -94,34 +94,34 @@ type MetaAnalysis struct {
 
 // StructureAnalysis represents content structure analysis
 type StructureAnalysis struct {
-	WordCount             int     `json:"word_count"`
-	WordCountScore        int     `json:"word_count_score"`
-	WordCountStatus       string  `json:"word_count_status"` // optimal, good, too_short, very_long
-	Headings              []HeadingData `json:"headings"`
-	H1Count               int     `json:"h1_count"`
-	H1Score               int     `json:"h1_score"`
-	H1Status              string  `json:"h1_status"` // optimal, missing, multiple
-	H2Count               int     `json:"h2_count"`
-	H2Score               int     `json:"h2_score"`
-	H2Status              string  `json:"h2_status"` // good, minimal, missing, many
-	H3Count               int     `json:"h3_count"`
-	AvgWordsPerParagraph  float64 `json:"avg_words_per_paragraph"`
-	ParagraphScore        int     `json:"paragraph_score"`
+	WordCount            int           `json:"word_count"`
+	WordCountScore       int           `json:"word_count_score"`
+	WordCountStatus      string        `json:"word_count_status"` // optimal, good, too_short, very_long
+	Headings             []HeadingData `json:"headings"`
+	H1Count              int           `json:"h1_count"`
+	H1Score              int           `json:"h1_score"`
+	H1Status             string        `json:"h1_status"` // optimal, missing, multiple
+	H2Count              int           `json:"h2_count"`
+	H2Score              int           `json:"h2_score"`
+	H2Status             string        `json:"h2_status"` // good, minimal, missing, many
+	H3Count              int           `json:"h3_count"`
+	AvgWordsPerParagraph float64       `json:"avg_words_per_paragraph"`
+	ParagraphScore       int           `json:"paragraph_score"`
 }
 
 // KeywordAnalysis represents keyword optimization analysis
 type KeywordAnalysis struct {
-	PrimaryKeyword           string                  `json:"primary_keyword"`
-	PrimaryKeywordCount      int                     `json:"primary_keyword_count"`
-	PrimaryKeywordDensity    float64                 `json:"primary_keyword_density"`
-	PrimaryKeywordScore      int                     `json:"primary_keyword_score"`
-	PrimaryKeywordStatus     string                  `json:"primary_keyword_status"` // optimal, good, too_low, too_high
-	PrimaryKeywordInIntro    bool                    `json:"primary_keyword_in_intro"`
-	IntroKeywordScore        int                     `json:"intro_keyword_score"`
-	SecondaryKeywords        []string                `json:"secondary_keywords"`
-	SecondaryKeywordData     []SecondaryKeywordData  `json:"secondary_keyword_data"`
-	LSIKeywords              []string                `json:"lsi_keywords"`
-	LSIScore                 float64                 `json:"lsi_score"`
+	PrimaryKeyword        string                 `json:"primary_keyword"`
+	PrimaryKeywordCount   int                    `json:"primary_keyword_count"`
+	PrimaryKeywordDensity float64                `json:"primary_keyword_density"`
+	PrimaryKeywordScore   int                    `json:"primary_keyword_score"`
+	PrimaryKeywordStatus  string                 `json:"primary_keyword_status"` // optimal, good, too_low, too_high
+	PrimaryKeywordInIntro bool                   `json:"primary_keyword_in_intro"`
+	IntroKeywordScore     int                    `json:"intro_keyword_score"`
+	SecondaryKeywords     []string               `json:"secondary_keywords"`
+	SecondaryKeywordData  []SecondaryKeywordData `json:"secondary_keyword_data"`
+	LSIKeywords           []string               `json:"lsi_keywords"`
+	LSIScore              float64                `json:"lsi_score"`
 }
 
 // SecondaryKeywordData represents secondary keyword analysis
@@ -133,41 +133,41 @@ type SecondaryKeywordData struct {
 
 // ReadabilityAnalysis represents content readability analysis
 type ReadabilityAnalysis struct {
-	SentenceCount           int                     `json:"sentence_count"`
-	WordCount               int                     `json:"word_count"`
-	SyllableCount           int                     `json:"syllable_count"`
-	AvgWordsPerSentence     float64                 `json:"avg_words_per_sentence"`
-	AvgSyllablesPerWord     float64                 `json:"avg_syllables_per_word"`
-	FleschScore             float64                 `json:"flesch_score"`
-	FleschKincaidGrade      float64                 `json:"flesch_kincaid_grade"`
-	ReadingLevel            string                  `json:"reading_level"`
-	ReadabilityScore        int                     `json:"readability_score"`
-	SentenceLengthAnalysis  SentenceLengthAnalysis  `json:"sentence_length_analysis"`
-	TransitionWords         []string                `json:"transition_words"`
-	TransitionWordScore     float64                 `json:"transition_word_score"`
+	SentenceCount          int                    `json:"sentence_count"`
+	WordCount              int                    `json:"word_count"`
+	SyllableCount          int                    `json:"syllable_count"`
+	AvgWordsPerSentence    float64                `json:"avg_words_per_sentence"`
+	AvgSyllablesPerWord    float64                `json:"avg_syllables_per_word"`
+	FleschScore            float64                `json:"flesch_score"`
+	FleschKincaidGrade     float64                `json:"flesch_kincaid_grade"`
+	ReadingLevel           string                 `json:"reading_level"`
+	ReadabilityScore       int                    `json:"readability_score"`
+	SentenceLengthAnalysis SentenceLengthAnalysis `json:"sentence_length_analysis"`
+	TransitionWords        []string               `json:"transition_words"`
+	TransitionWordScore    float64                `json:"transition_word_score"`
 }
 
 // SentenceLengthAnalysis represents sentence length distribution analysis
 type SentenceLengthAnalysis struct {
-	AverageLength     float64 `json:"average_length"`
-	ShortestSentence  int     `json:"shortest_sentence"`
-	LongestSentence   int     `json:"longest_sentence"`
-	ShortSentences    int     `json:"short_sentences"`    // <= 10 words
-	MediumSentences   int     `json:"medium_sentences"`   // 11-20 words
-	LongSentences     int     `json:"long_sentences"`     // > 20 words
+	AverageLength    float64 `json:"average_length"`
+	ShortestSentence int     `json:"shortest_sentence"`
+	LongestSentence  int     `json:"longest_sentence"`
+	ShortSentences   int     `json:"short_sentences"`  // <= 10 words
+	MediumSentences  int     `json:"medium_sentences"` // 11-20 words
+	LongSentences    int     `json:"long_sentences"`   // > 20 words
 }
 
 // TechnicalAnalysis represents technical SEO analysis
 type TechnicalAnalysis struct {
-	URLAnalysis         URLAnalysis `json:"url_analysis"`
-	HasSchemaMarkup     bool        `json:"has_schema_markup"`
-	SchemaScore         int         `json:"schema_score"`
-	HasCanonicalURL     bool        `json:"has_canonical_url"`
-	CanonicalScore      int         `json:"canonical_score"`
-	LoadTimeScore       int         `json:"load_time_score"`
-	LoadTimeStatus      string      `json:"load_time_status"` // excellent, good, fair, poor
-	IsMobileResponsive  bool        `json:"is_mobile_responsive"`
-	MobileScore         int         `json:"mobile_score"`
+	URLAnalysis        URLAnalysis `json:"url_analysis"`
+	HasSchemaMarkup    bool        `json:"has_schema_markup"`
+	SchemaScore        int         `json:"schema_score"`
+	HasCanonicalURL    bool        `json:"has_canonical_url"`
+	CanonicalScore     int         `json:"canonical_score"`
+	LoadTimeScore      int         `json:"load_time_score"`
+	LoadTimeStatus     string      `json:"load_time_status"` // excellent, good, fair, poor
+	IsMobileResponsive bool        `json:"is_mobile_responsive"`
+	MobileScore        int         `json:"mobile_score"`
 }
 
 // URLAnalysis represents URL structure analysis
@@ -184,45 +184,45 @@ type URLAnalysis struct {
 
 // LinkAnalysis represents link structure analysis
 type LinkAnalysis struct {
-	InternalLinks        []LinkData          `json:"internal_links"`
-	ExternalLinks        []LinkData          `json:"external_links"`
-	InternalLinkCount    int                 `json:"internal_link_count"`
-	ExternalLinkCount    int                 `json:"external_link_count"`
-	InternalLinkScore    int                 `json:"internal_link_score"`
-	InternalLinkStatus   string              `json:"internal_link_status"` // optimal, good, missing, too_many
-	ExternalLinkScore    int                 `json:"external_link_score"`
-	ExternalLinkStatus   string              `json:"external_link_status"` // optimal, good, none, too_many
-	AnchorTextAnalysis   AnchorTextAnalysis  `json:"anchor_text_analysis"`
+	InternalLinks      []LinkData         `json:"internal_links"`
+	ExternalLinks      []LinkData         `json:"external_links"`
+	InternalLinkCount  int                `json:"internal_link_count"`
+	ExternalLinkCount  int                `json:"external_link_count"`
+	InternalLinkScore  int                `json:"internal_link_score"`
+	InternalLinkStatus string             `json:"internal_link_status"` // optimal, good, missing, too_many
+	ExternalLinkScore  int                `json:"external_link_score"`
+	ExternalLinkStatus string             `json:"external_link_status"` // optimal, good, none, too_many
+	AnchorTextAnalysis AnchorTextAnalysis `json:"anchor_text_analysis"`
 }
 
 // AnchorTextAnalysis represents anchor text optimization analysis
 type AnchorTextAnalysis struct {
-	AnchorTextVariety      int      `json:"anchor_text_variety"`
-	MostUsedAnchorText     string   `json:"most_used_anchor_text"`
-	MaxAnchorFrequency     int      `json:"max_anchor_frequency"`
-	OverOptimizedAnchors   []string `json:"over_optimized_anchors"`
-	DiversityScore         float64  `json:"diversity_score"`
+	AnchorTextVariety    int      `json:"anchor_text_variety"`
+	MostUsedAnchorText   string   `json:"most_used_anchor_text"`
+	MaxAnchorFrequency   int      `json:"max_anchor_frequency"`
+	OverOptimizedAnchors []string `json:"over_optimized_anchors"`
+	DiversityScore       float64  `json:"diversity_score"`
 }
 
 // ImageAnalysis represents image optimization analysis
 type ImageAnalysis struct {
-	Images               []ImageData `json:"images"`
-	ImageCount           int         `json:"image_count"`
-	ImagesWithAltText    int         `json:"images_with_alt_text"`
-	ImagesWithTitle      int         `json:"images_with_title"`
-	OptimizedFileNames   int         `json:"optimized_file_names"`
-	AltTextScore         float64     `json:"alt_text_score"`
-	TitleScore           float64     `json:"title_score"`
-	FileNameScore        float64     `json:"file_name_score"`
-	ImageScore           float64     `json:"image_score"`
+	Images             []ImageData `json:"images"`
+	ImageCount         int         `json:"image_count"`
+	ImagesWithAltText  int         `json:"images_with_alt_text"`
+	ImagesWithTitle    int         `json:"images_with_title"`
+	OptimizedFileNames int         `json:"optimized_file_names"`
+	AltTextScore       float64     `json:"alt_text_score"`
+	TitleScore         float64     `json:"title_score"`
+	FileNameScore      float64     `json:"file_name_score"`
+	ImageScore         float64     `json:"image_score"`
 }
 
 // Opportunity represents an SEO optimization opportunity
 type Opportunity struct {
-	Type        string `json:"type"`        // title_optimization, keyword_optimization, etc.
-	Priority    string `json:"priority"`    // high, medium, low
-	Impact      string `json:"impact"`      // high, medium, low
-	Effort      string `json:"effort"`      // high, medium, low
+	Type        string `json:"type"`     // title_optimization, keyword_optimization, etc.
+	Priority    string `json:"priority"` // high, medium, low
+	Impact      string `json:"impact"`   // high, medium, low
+	Effort      string `json:"effort"`   // high, medium, low
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Action      string `json:"action"`
@@ -233,75 +233,75 @@ type Opportunity struct {
 // CompetitorAnalysisRequest represents a request for competitor analysis
 type CompetitorAnalysisRequest struct {
 	Competitors       []string `json:"competitors"`
-	AnalysisDepth     string   `json:"analysis_depth"`     // basic, detailed, comprehensive
+	AnalysisDepth     string   `json:"analysis_depth"` // basic, detailed, comprehensive
 	ContentCategories []string `json:"content_categories"`
-	Timeframe         string   `json:"timeframe"`          // 30d, 90d, 180d, 1y
+	Timeframe         string   `json:"timeframe"` // 30d, 90d, 180d, 1y
 }
 
 // CompetitorAnalysisResponse represents competitor analysis results
 type CompetitorAnalysisResponse struct {
-	RequestedAt     time.Time            `json:"requested_at"`
-	Competitors     []CompetitorProfile  `json:"competitors"`
-	MarketPosition  MarketPosition       `json:"market_position"`
-	ContentGaps     []ContentGap         `json:"content_gaps"`
-	KeywordGaps     []KeywordGap         `json:"keyword_gaps"`
-	Recommendations []string             `json:"recommendations"`
+	RequestedAt     time.Time           `json:"requested_at"`
+	Competitors     []CompetitorProfile `json:"competitors"`
+	MarketPosition  MarketPosition      `json:"market_position"`
+	ContentGaps     []ContentGap        `json:"content_gaps"`
+	KeywordGaps     []KeywordGap        `json:"keyword_gaps"`
+	Recommendations []string            `json:"recommendations"`
 }
 
 // CompetitorProfile represents a competitor's profile and metrics
 type CompetitorProfile struct {
-	Domain            string                 `json:"domain"`
-	DomainAuthority   int                    `json:"domain_authority"`
-	ContentVolume     ContentVolumeMetrics   `json:"content_volume"`
-	KeywordMetrics    CompetitorKeywords     `json:"keyword_metrics"`
-	ContentStrategy   ContentStrategyAnalysis `json:"content_strategy"`
-	SocialPresence    SocialPresenceMetrics  `json:"social_presence"`
-	TechnicalMetrics  TechnicalMetrics       `json:"technical_metrics"`
+	Domain           string                  `json:"domain"`
+	DomainAuthority  int                     `json:"domain_authority"`
+	ContentVolume    ContentVolumeMetrics    `json:"content_volume"`
+	KeywordMetrics   CompetitorKeywords      `json:"keyword_metrics"`
+	ContentStrategy  ContentStrategyAnalysis `json:"content_strategy"`
+	SocialPresence   SocialPresenceMetrics   `json:"social_presence"`
+	TechnicalMetrics TechnicalMetrics        `json:"technical_metrics"`
 }
 
 // ContentVolumeMetrics represents content volume analysis
 type ContentVolumeMetrics struct {
-	TotalPosts        int                    `json:"total_posts"`
-	PostsPerMonth     float64                `json:"posts_per_month"`
-	AvgPostLength     int                    `json:"avg_post_length"`
-	ContentCategories map[string]int         `json:"content_categories"`
-	PublishingPattern PublishingPatternData  `json:"publishing_pattern"`
+	TotalPosts        int                   `json:"total_posts"`
+	PostsPerMonth     float64               `json:"posts_per_month"`
+	AvgPostLength     int                   `json:"avg_post_length"`
+	ContentCategories map[string]int        `json:"content_categories"`
+	PublishingPattern PublishingPatternData `json:"publishing_pattern"`
 }
 
 // CompetitorKeywords represents competitor keyword analysis
 type CompetitorKeywords struct {
-	TotalKeywords      int                 `json:"total_keywords"`
-	RankingKeywords    int                 `json:"ranking_keywords"`
-	TopKeywords        []KeywordRanking    `json:"top_keywords"`
-	KeywordOverlap     []string            `json:"keyword_overlap"`
-	UniqueKeywords     []string            `json:"unique_keywords"`
-	AvgKeywordRank     float64             `json:"avg_keyword_rank"`
+	TotalKeywords   int              `json:"total_keywords"`
+	RankingKeywords int              `json:"ranking_keywords"`
+	TopKeywords     []KeywordRanking `json:"top_keywords"`
+	KeywordOverlap  []string         `json:"keyword_overlap"`
+	UniqueKeywords  []string         `json:"unique_keywords"`
+	AvgKeywordRank  float64          `json:"avg_keyword_rank"`
 }
 
 // ContentStrategyAnalysis represents content strategy analysis
 type ContentStrategyAnalysis struct {
-	PrimaryTopics      []TopicAnalysis     `json:"primary_topics"`
-	ContentTypes       map[string]int      `json:"content_types"`
-	TargetAudience     AudienceAnalysis    `json:"target_audience"`
-	ContentQuality     ContentQualityScore `json:"content_quality"`
-	EngagementMetrics  EngagementSummary   `json:"engagement_metrics"`
+	PrimaryTopics     []TopicAnalysis     `json:"primary_topics"`
+	ContentTypes      map[string]int      `json:"content_types"`
+	TargetAudience    AudienceAnalysis    `json:"target_audience"`
+	ContentQuality    ContentQualityScore `json:"content_quality"`
+	EngagementMetrics EngagementSummary   `json:"engagement_metrics"`
 }
 
 // SocialPresenceMetrics represents social media presence analysis
 type SocialPresenceMetrics struct {
-	Platforms         map[string]SocialPlatformData `json:"platforms"`
-	TotalFollowers    int                           `json:"total_followers"`
-	EngagementRate    float64                       `json:"engagement_rate"`
-	SocialShares      SocialSharesData              `json:"social_shares"`
-	InfluencerScore   int                           `json:"influencer_score"`
+	Platforms       map[string]SocialPlatformData `json:"platforms"`
+	TotalFollowers  int                           `json:"total_followers"`
+	EngagementRate  float64                       `json:"engagement_rate"`
+	SocialShares    SocialSharesData              `json:"social_shares"`
+	InfluencerScore int                           `json:"influencer_score"`
 }
 
 // TechnicalMetrics represents technical performance metrics
 type TechnicalMetrics struct {
-	SiteSpeed         SiteSpeedMetrics    `json:"site_speed"`
-	MobileOptimization MobileMetrics      `json:"mobile_optimization"`
-	SEOHealth         SEOHealthMetrics    `json:"seo_health"`
-	SecurityMetrics   SecurityMetrics     `json:"security_metrics"`
+	SiteSpeed          SiteSpeedMetrics `json:"site_speed"`
+	MobileOptimization MobileMetrics    `json:"mobile_optimization"`
+	SEOHealth          SEOHealthMetrics `json:"seo_health"`
+	SecurityMetrics    SecurityMetrics  `json:"security_metrics"`
 }
 
 // Supporting data structures
@@ -313,11 +313,11 @@ type PublishingPatternData struct {
 }
 
 type KeywordRanking struct {
-	Keyword      string  `json:"keyword"`
-	Rank         int     `json:"rank"`
-	SearchVolume int     `json:"search_volume"`
-	Difficulty   int     `json:"difficulty"`
-	Traffic      int     `json:"estimated_traffic"`
+	Keyword      string `json:"keyword"`
+	Rank         int    `json:"rank"`
+	SearchVolume int    `json:"search_volume"`
+	Difficulty   int    `json:"difficulty"`
+	Traffic      int    `json:"estimated_traffic"`
 }
 
 type TopicAnalysis struct {
@@ -334,11 +334,11 @@ type AudienceAnalysis struct {
 }
 
 type ContentQualityScore struct {
-	OverallScore    int     `json:"overall_score"`
-	ReadabilityScore int    `json:"readability_score"`
-	SEOScore        int     `json:"seo_score"`
-	EngagementScore int     `json:"engagement_score"`
-	OriginalityScore int    `json:"originality_score"`
+	OverallScore     int `json:"overall_score"`
+	ReadabilityScore int `json:"readability_score"`
+	SEOScore         int `json:"seo_score"`
+	EngagementScore  int `json:"engagement_score"`
+	OriginalityScore int `json:"originality_score"`
 }
 
 type EngagementSummary struct {
@@ -350,16 +350,16 @@ type EngagementSummary struct {
 }
 
 type SocialPlatformData struct {
-	Platform    string  `json:"platform"`
-	Followers   int     `json:"followers"`
-	Engagement  float64 `json:"engagement_rate"`
-	PostFreq    float64 `json:"posts_per_week"`
+	Platform   string  `json:"platform"`
+	Followers  int     `json:"followers"`
+	Engagement float64 `json:"engagement_rate"`
+	PostFreq   float64 `json:"posts_per_week"`
 }
 
 type SocialSharesData struct {
-	TotalShares     int            `json:"total_shares"`
+	TotalShares      int            `json:"total_shares"`
 	SharesByPlatform map[string]int `json:"shares_by_platform"`
-	ViralContent    []ContentPiece `json:"viral_content"`
+	ViralContent     []ContentPiece `json:"viral_content"`
 }
 
 type SiteSpeedMetrics struct {
@@ -370,26 +370,26 @@ type SiteSpeedMetrics struct {
 }
 
 type MobileMetrics struct {
-	MobileFriendly    bool    `json:"mobile_friendly"`
-	MobileSpeed       float64 `json:"mobile_speed"`
-	ResponsiveDesign  bool    `json:"responsive_design"`
-	MobileUsability   int     `json:"mobile_usability_score"`
+	MobileFriendly   bool    `json:"mobile_friendly"`
+	MobileSpeed      float64 `json:"mobile_speed"`
+	ResponsiveDesign bool    `json:"responsive_design"`
+	MobileUsability  int     `json:"mobile_usability_score"`
 }
 
 type SEOHealthMetrics struct {
-	CrawlErrors       int     `json:"crawl_errors"`
-	IndexedPages      int     `json:"indexed_pages"`
-	SitemapPresent    bool    `json:"sitemap_present"`
-	RobotsTxtPresent  bool    `json:"robots_txt_present"`
-	SSLCertificate    bool    `json:"ssl_certificate"`
-	OverallSEOScore   int     `json:"overall_seo_score"`
+	CrawlErrors      int  `json:"crawl_errors"`
+	IndexedPages     int  `json:"indexed_pages"`
+	SitemapPresent   bool `json:"sitemap_present"`
+	RobotsTxtPresent bool `json:"robots_txt_present"`
+	SSLCertificate   bool `json:"ssl_certificate"`
+	OverallSEOScore  int  `json:"overall_seo_score"`
 }
 
 type SecurityMetrics struct {
-	SSLRating         string `json:"ssl_rating"`
-	SecurityHeaders   int    `json:"security_headers_count"`
-	VulnerabilityScore int   `json:"vulnerability_score"`
-	TrustScore        int    `json:"trust_score"`
+	SSLRating          string `json:"ssl_rating"`
+	SecurityHeaders    int    `json:"security_headers_count"`
+	VulnerabilityScore int    `json:"vulnerability_score"`
+	TrustScore         int    `json:"trust_score"`
 }
 
 type ContentPiece struct {
@@ -403,17 +403,17 @@ type ContentPiece struct {
 // Market Position and Gap Analysis
 
 type MarketPosition struct {
-	OverallRank       int                    `json:"overall_rank"`
-	MarketShare       float64                `json:"market_share"`
-	StrengthsWeakness StrengthsWeaknessAnalysis `json:"strengths_weaknesses"`
-	CompetitiveAdvantage string              `json:"competitive_advantage"`
-	Threats           []string               `json:"threats"`
-	Opportunities     []string               `json:"opportunities"`
+	OverallRank          int                       `json:"overall_rank"`
+	MarketShare          float64                   `json:"market_share"`
+	StrengthsWeakness    StrengthsWeaknessAnalysis `json:"strengths_weaknesses"`
+	CompetitiveAdvantage string                    `json:"competitive_advantage"`
+	Threats              []string                  `json:"threats"`
+	Opportunities        []string                  `json:"opportunities"`
 }
 
 type StrengthsWeaknessAnalysis struct {
-	Strengths  []CompetitiveStrength  `json:"strengths"`
-	Weaknesses []CompetitiveWeakness  `json:"weaknesses"`
+	Strengths  []CompetitiveStrength `json:"strengths"`
+	Weaknesses []CompetitiveWeakness `json:"weaknesses"`
 }
 
 type CompetitiveStrength struct {
@@ -439,11 +439,11 @@ type ContentGap struct {
 }
 
 type KeywordGap struct {
-	Keyword         string  `json:"keyword"`
-	YourRank        int     `json:"your_rank"`        // 0 if not ranking
-	CompetitorRank  int     `json:"competitor_rank"`
-	SearchVolume    int     `json:"search_volume"`
-	Difficulty      int     `json:"difficulty"`
-	Opportunity     string  `json:"opportunity"`      // high, medium, low
+	Keyword          string `json:"keyword"`
+	YourRank         int    `json:"your_rank"` // 0 if not ranking
+	CompetitorRank   int    `json:"competitor_rank"`
+	SearchVolume     int    `json:"search_volume"`
+	Difficulty       int    `json:"difficulty"`
+	Opportunity      string `json:"opportunity"` // high, medium, low
 	TrafficPotential int    `json:"traffic_potential"`
 }

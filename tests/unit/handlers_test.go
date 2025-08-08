@@ -23,7 +23,7 @@ type HandlersTestSuite struct {
 func (suite *HandlersTestSuite) SetupSuite() {
 	gin.SetMode(gin.TestMode)
 	suite.router = gin.New()
-	
+
 	// Initialize handlers
 	healthHandler := handlers.NewHealthHandler()
 
@@ -184,7 +184,7 @@ func (suite *HandlersTestSuite) TestMetricsCheck() {
 // TestHTTPMethods tests that endpoints only accept appropriate HTTP methods
 func (suite *HandlersTestSuite) TestHTTPMethods() {
 	endpoints := []string{"/health", "/health/deep", "/status", "/ready", "/alive", "/metrics"}
-	
+
 	for _, endpoint := range endpoints {
 		suite.Run("POST Not Allowed on "+endpoint, func() {
 			req, err := http.NewRequest("POST", endpoint, nil)
@@ -311,14 +311,14 @@ func (suite *HandlersTestSuite) TestResponseTime() {
 			suite.Require().NoError(err)
 
 			w := httptest.NewRecorder()
-			
+
 			// Measure response time
 			start := time.Now()
 			suite.router.ServeHTTP(w, req)
 			elapsed := time.Since(start)
 
 			suite.Equal(http.StatusOK, w.Code)
-			suite.True(elapsed < time.Millisecond*100, 
+			suite.True(elapsed < time.Millisecond*100,
 				"Handler %s should respond in less than 100ms, took %v", endpoint, elapsed)
 		})
 	}
@@ -329,7 +329,7 @@ func (suite *HandlersTestSuite) TestErrorConditions() {
 	suite.Run("Malformed Request", func() {
 		req, err := http.NewRequest("GET", "/health", nil)
 		suite.Require().NoError(err)
-		
+
 		// Add malformed headers
 		req.Header.Set("Content-Type", "invalid/content/type")
 

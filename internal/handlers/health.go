@@ -23,7 +23,7 @@ func NewHealthHandler() *HealthHandler {
 // SimpleHealthCheck performs a basic health check
 func (h *HealthHandler) SimpleHealthCheck(c *gin.Context) {
 	uptime := time.Since(startTime)
-	
+
 	// Check database
 	dbHealth := "healthy"
 	if db := database.GetDB(); db != nil {
@@ -142,7 +142,7 @@ func (h *HealthHandler) DeepHealthCheck(c *gin.Context) {
 	// Environment check
 	envStatus := "healthy"
 	missingVars := []string{}
-	
+
 	requiredVars := []string{"DB_HOST", "DB_NAME", "JWT_SECRET"}
 	for _, envVar := range requiredVars {
 		if os.Getenv(envVar) == "" {
@@ -171,13 +171,13 @@ func (h *HealthHandler) DeepHealthCheck(c *gin.Context) {
 		"success": true,
 		"message": "Deep health check completed",
 		"data": map[string]interface{}{
-			"status":             overallStatus,
-			"check_duration_ms":  totalDuration.Milliseconds(),
-			"checks":             checks,
-			"service":            "Blog CRM Management Microservice",
-			"version":            getEnv("APP_VERSION", "1.0.0"),
-			"uptime":             time.Since(startTime).String(),
-			"timestamp":          time.Now(),
+			"status":            overallStatus,
+			"check_duration_ms": totalDuration.Milliseconds(),
+			"checks":            checks,
+			"service":           "Blog CRM Management Microservice",
+			"version":           getEnv("APP_VERSION", "1.0.0"),
+			"uptime":            time.Since(startTime).String(),
+			"timestamp":         time.Now(),
 		},
 	}
 
@@ -272,7 +272,7 @@ func (h *HealthHandler) LivenessCheck(c *gin.Context) {
 // MetricsCheck returns comprehensive system metrics
 func (h *HealthHandler) MetricsCheck(c *gin.Context) {
 	uptime := time.Since(startTime)
-	
+
 	// Get memory statistics
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)
@@ -300,7 +300,7 @@ func (h *HealthHandler) MetricsCheck(c *gin.Context) {
 				"gc_pause_total_ns":  memStats.PauseTotalNs,
 			},
 		},
-		"database": database.GetConnectionStats(),
+		"database":  database.GetConnectionStats(),
 		"timestamp": time.Now(),
 	}
 

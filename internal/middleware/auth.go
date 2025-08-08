@@ -57,13 +57,13 @@ func AuthMiddleware() gin.HandlerFunc {
 				"error": err.Error(),
 				"path":  c.Request.URL.Path,
 			})
-			
+
 			// Determine specific error type
 			errorCode := "INVALID_TOKEN"
 			if strings.Contains(err.Error(), "expired") {
 				errorCode = "TOKEN_EXPIRED"
 			}
-			
+
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"success": false,
 				"message": "Invalid or expired token",
@@ -153,7 +153,7 @@ func AdminOnly() gin.HandlerFunc {
 				"role": userRole,
 				"path": c.Request.URL.Path,
 			})
-			
+
 			c.JSON(http.StatusForbidden, gin.H{
 				"success": false,
 				"message": "Admin access required",
@@ -208,7 +208,7 @@ func RequirePermission(permission string) gin.HandlerFunc {
 				"required_permission": permission,
 				"path":                c.Request.URL.Path,
 			})
-			
+
 			c.JSON(http.StatusForbidden, gin.H{
 				"success": false,
 				"message": "Insufficient permissions",
@@ -259,7 +259,7 @@ func RequireRole(requiredRole string) gin.HandlerFunc {
 				"required_role": requiredRole,
 				"path":          c.Request.URL.Path,
 			})
-			
+
 			c.JSON(http.StatusForbidden, gin.H{
 				"success": false,
 				"message": "Insufficient role privileges",
@@ -314,7 +314,7 @@ func GetUserRole(c *gin.Context) (string, bool) {
 	if !exists {
 		return "", false
 	}
-	
+
 	userRole, ok := role.(string)
 	return userRole, ok
 }
@@ -331,7 +331,7 @@ func CanAccessResource(c *gin.Context, resourceType string, action string) bool 
 	if !exists {
 		return false
 	}
-	
+
 	permission := resourceType + ":" + action
 	return auth.HasPermission(role, permission)
 }

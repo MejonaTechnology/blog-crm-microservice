@@ -183,7 +183,7 @@ func (pc *PerformanceCalculator) CalculateTrendScore(dataPoints []TrendDataPoint
 // CalculateSeasonalityIndex calculates seasonality index for content performance
 func (pc *PerformanceCalculator) CalculateSeasonalityIndex(monthlyData []float64) map[int]float64 {
 	seasonalityIndex := make(map[int]float64)
-	
+
 	if len(monthlyData) == 0 {
 		return seasonalityIndex
 	}
@@ -244,12 +244,12 @@ func (pc *PerformanceCalculator) CalculateCompetitiveScore(ownMetrics, competito
 // Data structures for calculations
 
 type EngagementMetrics struct {
-	PageViews       int
-	AvgTimeOnPage   int     // seconds
-	BounceRate      float64 // percentage
-	AvgScrollDepth  float64 // percentage
-	SocialShares    int
-	Comments        int
+	PageViews      int
+	AvgTimeOnPage  int     // seconds
+	BounceRate     float64 // percentage
+	AvgScrollDepth float64 // percentage
+	SocialShares   int
+	Comments       int
 }
 
 type ContentQualityMetrics struct {
@@ -263,11 +263,11 @@ type ContentQualityMetrics struct {
 }
 
 type ViralityMetrics struct {
-	PageViews           int
-	SocialShares        int
-	GrowthVelocity      float64 // views per hour/day
-	EngagementVelocity  float64 // engagements per hour/day
-	PlatformReach       int     // number of platforms shared on
+	PageViews          int
+	SocialShares       int
+	GrowthVelocity     float64 // views per hour/day
+	EngagementVelocity float64 // engagements per hour/day
+	PlatformReach      int     // number of platforms shared on
 }
 
 type TrendDataPoint struct {
