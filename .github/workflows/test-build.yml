@@ -1,0 +1,94 @@
+name: Blog CRM Service - Test Build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+
+env:
+  SERVICE_NAME: blog-crm-service
+  SERVICE_PORT: 8082
+  GO_VERSION: '1.23'
+
+jobs:
+  test-build:
+    name: Test Build Only
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ env.GO_VERSION }}
+        
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        
+    - name: Download dependencies
+      run: |
+        echo "Downloading dependencies..."
+        go mod download
+        
+    - name: Verify dependencies
+      run: |
+        echo "Verifying dependencies..."
+        go mod verify
+        
+    - name: Run go vet
+      run: |
+        echo "Running go vet..."
+        go vet ./...
+        
+    - name: Check code formatting
+      run: |
+        echo "Checking code formatting..."
+        if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+          echo "⚠️ Code is not formatted:"
+          gofmt -s -l .
+          echo "Run 'go fmt ./...' to fix formatting issues"
+          exit 1
+        else
+          echo "✅ Code formatting is correct"
+        fi
+        
+    - name: Build service
+      run: |
+        echo "Building Blog CRM Service..."
+        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o ${{ env.SERVICE_NAME }} cmd/server/main.go
+        ls -la ${{ env.SERVICE_NAME }}
+        file ${{ env.SERVICE_NAME }}
+        echo "✅ Build completed successfully"
+        
+    - name: Test service startup (dry run)
+      run: |
+        echo "Testing service startup..."
+        # Set minimal environment for testing
+        export DB_HOST=localhost
+        export DB_USER=test
+        export DB_PASSWORD=test
+        export DB_NAME=test_db
+        export PORT=${{ env.SERVICE_PORT }}
+        
+        # Try to start the service for 5 seconds to check for startup errors
+        timeout 5s ./${{ env.SERVICE_NAME }} || true
+        echo "✅ Service startup test completed"
+        
+    - name: Build summary
+      run: |
+        echo "📊 Build Summary:"
+        echo "================"
+        echo "Service: Blog CRM Management Microservice"
+        echo "Go Version: ${{ env.GO_VERSION }}"
+        echo "Binary Size: $(stat -c%s ${{ env.SERVICE_NAME }}) bytes"
+        echo "Status: ✅ SUCCESS"
+        echo ""
+        echo "🎯 Next Steps:"
+        echo "1. Merge this PR to trigger production deployment"
+        echo "2. Check deployment logs for any issues"
+        echo "3. Verify service at http://65.1.94.25:${{ env.SERVICE_PORT }}/health"

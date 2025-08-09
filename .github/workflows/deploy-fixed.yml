@@ -1,0 +1,219 @@
+name: Blog CRM Service - Fixed Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  SERVICE_NAME: blog-crm-service
+  SERVICE_PORT: 8082
+  GO_VERSION: '1.23'
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy to Production
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ env.GO_VERSION }}
+        
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        
+    - name: Download dependencies
+      run: go mod download
+      
+    - name: Verify dependencies
+      run: go mod verify
+      
+    - name: Build service
+      run: |
+        echo "Building Blog CRM Service..."
+        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o ${{ env.SERVICE_NAME }} cmd/server/main.go
+        ls -la ${{ env.SERVICE_NAME }}
+        file ${{ env.SERVICE_NAME }}
+        echo "✅ Build completed successfully"
+        
+    - name: Deploy to AWS EC2
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.PRODUCTION_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        port: 22
+        script: |
+          echo "🚀 Starting Blog CRM Service deployment..."
+          
+          # Create service directory
+          sudo mkdir -p /opt/mejona/blog-crm-service
+          cd /opt/mejona/blog-crm-service
+          
+          # Stop existing service if running
+          sudo systemctl stop blog-crm-service 2>/dev/null || true
+          
+          # Backup existing binary
+          sudo cp blog-crm-service blog-crm-service.backup.$(date +%Y%m%d_%H%M%S) 2>/dev/null || true
+          
+          # Clone/update repository
+          if [ ! -d ".git" ]; then
+            echo "Cloning repository..."
+            sudo git clone https://github.com/MejonaTechnology/blog-crm-microservice.git .
+          else
+            echo "Updating repository..."
+            sudo git fetch origin
+            sudo git reset --hard origin/main
+          fi
+          
+          # Set proper ownership
+          sudo chown -R ubuntu:ubuntu /opt/mejona/blog-crm-service
+          
+          # Build service
+          echo "Building service..."
+          /usr/local/go/bin/go mod download
+          CGO_ENABLED=0 /usr/local/go/bin/go build -ldflags="-w -s" -o blog-crm-service cmd/server/main.go
+          chmod +x blog-crm-service
+          
+          # Create environment file
+          echo "Creating environment configuration..."
+          cat > .env << 'EOF'
+          # Database Configuration
+          DB_HOST=${{ secrets.DB_HOST }}
+          DB_USER=${{ secrets.DB_USER }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          DB_NAME=${{ secrets.DB_NAME }}
+          DB_PORT=3306
+          
+          # Service Configuration
+          PORT=${{ env.SERVICE_PORT }}
+          GIN_MODE=release
+          APP_ENV=production
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          
+          # Feature Flags
+          ENABLE_ANALYTICS=true
+          ENABLE_LEAD_TRACKING=true
+          ENABLE_SEO_ANALYSIS=true
+          ENABLE_METRICS=true
+          
+          # Logging
+          LOG_LEVEL=info
+          APP_DEBUG=false
+          EOF
+          
+          # Create systemd service file
+          echo "Creating systemd service..."
+          sudo tee /etc/systemd/system/blog-crm-service.service > /dev/null << 'EOF'
+          [Unit]
+          Description=Blog CRM Management Microservice
+          After=network.target mysql.service
+          Wants=mysql.service
+          
+          [Service]
+          Type=simple
+          User=ubuntu
+          Group=ubuntu
+          WorkingDirectory=/opt/mejona/blog-crm-service
+          ExecStart=/opt/mejona/blog-crm-service/blog-crm-service
+          EnvironmentFile=/opt/mejona/blog-crm-service/.env
+          Restart=always
+          RestartSec=10
+          StandardOutput=journal
+          StandardError=journal
+          
+          # Security settings
+          NoNewPrivileges=true
+          PrivateTmp=true
+          
+          [Install]
+          WantedBy=multi-user.target
+          EOF
+          
+          # Reload systemd and start service
+          echo "Starting service..."
+          sudo systemctl daemon-reload
+          sudo systemctl enable blog-crm-service
+          sudo systemctl start blog-crm-service
+          
+          # Wait for service to start
+          echo "Waiting for service to start..."
+          sleep 15
+          
+          # Check service status
+          if systemctl is-active --quiet blog-crm-service; then
+            echo "✅ Blog CRM Service is running"
+            systemctl status blog-crm-service --no-pager -l
+          else
+            echo "❌ Blog CRM Service failed to start"
+            systemctl status blog-crm-service --no-pager -l
+            echo "Service logs:"
+            journalctl -u blog-crm-service -n 50 --no-pager
+            exit 1
+          fi
+          
+          # Health check
+          echo "Performing health check..."
+          sleep 5
+          if curl -f --connect-timeout 10 --max-time 30 http://localhost:${{ env.SERVICE_PORT }}/health; then
+            echo "✅ Health check passed"
+          else
+            echo "❌ Health check failed - checking service logs"
+            journalctl -u blog-crm-service -n 20 --no-pager
+            exit 1
+          fi
+          
+          # Test API endpoint
+          echo "Testing API endpoint..."
+          if curl -f --connect-timeout 10 --max-time 30 http://localhost:${{ env.SERVICE_PORT }}/api/v1/test; then
+            echo "✅ API test passed"
+          else
+            echo "❌ API test failed"
+            journalctl -u blog-crm-service -n 20 --no-pager
+            exit 1
+          fi
+          
+          echo "🎉 Blog CRM Service deployment completed successfully!"
+          echo "Service running on port ${{ env.SERVICE_PORT }}"
+          
+    - name: Final verification
+      run: |
+        echo "🔍 Running final verification..."
+        sleep 30
+        
+        # Test external access
+        if curl -f --connect-timeout 10 --max-time 30 "http://${{ secrets.PRODUCTION_HOST }}:${{ env.SERVICE_PORT }}/health"; then
+          echo "✅ Blog CRM Service is accessible externally"
+          echo "🌐 Service URL: http://${{ secrets.PRODUCTION_HOST }}:${{ env.SERVICE_PORT }}"
+          echo "📊 Health Check: http://${{ secrets.PRODUCTION_HOST }}:${{ env.SERVICE_PORT }}/health"
+        else
+          echo "❌ External verification failed"
+          exit 1
+        fi
+        
+    - name: Deployment summary
+      if: always()
+      run: |
+        echo "📋 Deployment Summary:"
+        echo "==================="
+        echo "Service: Blog CRM Management Microservice"
+        echo "Status: ${{ job.status }}"
+        echo "Port: ${{ env.SERVICE_PORT }}"
+        echo "Health: http://${{ secrets.PRODUCTION_HOST }}:${{ env.SERVICE_PORT }}/health"
+        echo "API Test: http://${{ secrets.PRODUCTION_HOST }}:${{ env.SERVICE_PORT }}/api/v1/test"
+        
+        if [ "${{ job.status }}" = "success" ]; then
+          echo "✅ DEPLOYMENT SUCCESSFUL"
+          echo "🚀 Blog CRM Service is now live and operational!"
+        else
+          echo "❌ DEPLOYMENT FAILED"
+          echo "🔍 Check the logs above for troubleshooting information"
+        fi

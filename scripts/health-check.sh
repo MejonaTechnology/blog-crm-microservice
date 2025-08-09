@@ -9,13 +9,13 @@ set -euo pipefail
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
-readonly SERVICE_NAME="blog-service"
+readonly SERVICE_NAME="blog-crm-service"
 readonly SERVICE_PORT="8082"
-readonly SYSTEMD_SERVICE="mejona-blog-service"
-readonly LOG_FILE="/var/log/mejona/blog-service.log"
-readonly ERROR_LOG="/var/log/mejona/blog-service-error.log"
-readonly HEALTH_LOG="/var/log/mejona/blog-service-health.log"
-readonly PID_FILE="/var/run/mejona/blog-service.pid"
+readonly SYSTEMD_SERVICE="blog-crm-service"
+readonly LOG_FILE="/var/log/mejona/blog-crm-service.log"
+readonly ERROR_LOG="/var/log/mejona/blog-crm-service-error.log"
+readonly HEALTH_LOG="/var/log/mejona/blog-crm-service-health.log"
+readonly PID_FILE="/var/run/mejona/blog-crm-service.pid"
 
 # Colors
 readonly RED='\033[0;31m'
@@ -230,7 +230,7 @@ check_system_resources() {
     
     # Check disk usage
     if command -v df >/dev/null 2>&1; then
-        disk_percent=$(df /opt/mejona/blog-service | tail -1 | awk '{print $5}' | sed 's/%//')
+        disk_percent=$(df /opt/mejona/blog-crm-service | tail -1 | awk '{print $5}' | sed 's/%//')
         info "Disk Usage: ${disk_percent}%"
         log_health "DISK_USAGE: ${disk_percent}%"
         
@@ -347,7 +347,7 @@ generate_health_report() {
         echo
         
         echo "DISK USAGE:"
-        df -h /opt/mejona/blog-service || true
+        df -h /opt/mejona/blog-crm-service || true
         echo
         
         echo "RECENT LOG ENTRIES:"
@@ -406,9 +406,9 @@ run_comprehensive_health_check() {
     log "Running comprehensive health check..."
     
     # Load environment variables if available
-    if [[ -f /etc/mejona/blog-service.env ]]; then
+    if [[ -f /opt/mejona/blog-crm-service/.env ]]; then
         set -a
-        source /etc/mejona/blog-service.env
+        source /opt/mejona/blog-crm-service/.env
         set +a
     fi
     
