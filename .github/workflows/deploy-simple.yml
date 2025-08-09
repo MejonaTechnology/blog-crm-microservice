@@ -1,0 +1,181 @@
+name: Blog CRM Service - Simple Deploy
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  SERVICE_NAME: blog-crm-service
+  SERVICE_PORT: 8082
+  GO_VERSION: '1.21'
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ env.GO_VERSION }}
+        
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        
+    - name: Download dependencies
+      run: go mod download
+      
+    - name: Run go vet
+      run: go vet ./...
+      
+    - name: Run go fmt check
+      run: |
+        if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+          echo "Go code is not formatted:"
+          gofmt -s -l .
+          exit 1
+        fi
+        
+    - name: Build for Linux
+      run: |
+        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o ${{ env.SERVICE_NAME }}-linux cmd/server/main.go
+        ls -la ${{ env.SERVICE_NAME }}-linux
+        
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ env.SERVICE_NAME }}-linux
+        path: ${{ env.SERVICE_NAME }}-linux
+        retention-days: 1
+
+  deploy:
+    name: Deploy to Production
+    needs: [build-and-test]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download build artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: ${{ env.SERVICE_NAME }}-linux
+        
+    - name: Deploy to AWS EC2
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.PRODUCTION_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        port: 22
+        script: |
+          echo "Starting Blog CRM Service deployment..."
+          
+          # Create service directory
+          sudo mkdir -p /opt/mejona/blog-crm-service
+          cd /opt/mejona/blog-crm-service
+          
+          # Stop existing service if running
+          sudo systemctl stop blog-crm-service 2>/dev/null || true
+          
+          # Clone/update repository
+          if [ ! -d ".git" ]; then
+            sudo git clone https://github.com/MejonaTechnology/blog-crm-microservice.git .
+          else
+            sudo git fetch origin
+            sudo git reset --hard origin/main
+          fi
+          
+          # Set proper ownership
+          sudo chown -R ubuntu:ubuntu /opt/mejona/blog-crm-service
+          
+          # Build service
+          /usr/local/go/bin/go mod download
+          CGO_ENABLED=0 /usr/local/go/bin/go build -o blog-crm-service cmd/server/main.go
+          chmod +x blog-crm-service
+          
+          # Create environment file
+          cat > .env << 'EOF'
+          DB_HOST=${{ secrets.DB_HOST }}
+          DB_USER=${{ secrets.DB_USER }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          DB_NAME=${{ secrets.DB_NAME }}
+          DB_PORT=3306
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          GIN_MODE=release
+          PORT=${{ env.SERVICE_PORT }}
+          ENABLE_ANALYTICS=true
+          ENABLE_LEAD_TRACKING=true
+          LOG_LEVEL=info
+          EOF
+          
+          # Create systemd service
+          sudo tee /etc/systemd/system/blog-crm-service.service > /dev/null << 'EOF'
+          [Unit]
+          Description=Blog CRM Management Microservice
+          After=network.target
+          
+          [Service]
+          Type=simple
+          User=ubuntu
+          Group=ubuntu
+          WorkingDirectory=/opt/mejona/blog-crm-service
+          ExecStart=/opt/mejona/blog-crm-service/blog-crm-service
+          EnvironmentFile=/opt/mejona/blog-crm-service/.env
+          Restart=always
+          RestartSec=10
+          StandardOutput=journal
+          StandardError=journal
+          
+          [Install]
+          WantedBy=multi-user.target
+          EOF
+          
+          # Start service
+          sudo systemctl daemon-reload
+          sudo systemctl enable blog-crm-service
+          sudo systemctl start blog-crm-service
+          
+          # Wait and verify
+          sleep 10
+          
+          # Check service status
+          if systemctl is-active --quiet blog-crm-service; then
+            echo "✅ Blog CRM Service is running"
+            systemctl status blog-crm-service --no-pager -l
+          else
+            echo "❌ Blog CRM Service failed to start"
+            systemctl status blog-crm-service --no-pager -l
+            journalctl -u blog-crm-service -n 50 --no-pager
+            exit 1
+          fi
+          
+          # Health check
+          sleep 5
+          if curl -f http://localhost:${{ env.SERVICE_PORT }}/health; then
+            echo "✅ Health check passed"
+          else
+            echo "❌ Health check failed"
+            exit 1
+          fi
+
+    - name: Verify deployment
+      run: |
+        echo "Verifying deployment..."
+        sleep 30
+        if curl -f "http://${{ secrets.PRODUCTION_HOST }}:${{ env.SERVICE_PORT }}/health"; then
+          echo "✅ Blog CRM Service is live at http://${{ secrets.PRODUCTION_HOST }}:${{ env.SERVICE_PORT }}"
+        else
+          echo "❌ Service verification failed"
+          exit 1
+        fi
